@@ -1,76 +1,269 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Organiza</title>
+<title>Organiza | Controle Financeiro</title>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 
 <link rel="stylesheet" href="styles/global.css">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 </head>
 
+
 <body>
 
-<div class="container">
+
+<div class="app">
+
+
+<!-- MENU LATERAL -->
 
 <aside class="sidebar">
 
-<h2>💰 Organiza</h2>
 
-<button class="menu active" data-page="dashboard">Dashboard</button>
+<div class="logo">
 
-<button class="menu" data-page="financeiro">
+
+<h2>
+💰 Organiza
+</h2>
+
+
+<p>
+Sua vida financeira organizada
+</p>
+
+
+</div>
+
+
+
+
+
+<nav>
+
+
+<button 
+class="menu active"
+data-page="dashboard">
+
+
+<span>🏠</span>
+
+Dashboard
+
+
+</button>
+
+
+
+
+
+<button 
+class="menu"
+data-page="financeiro">
+
+
+<span>💳</span>
+
 Meu Financeiro
+
+
 </button>
 
-<button class="menu" data-page="investimentos">
+
+
+
+
+<button 
+class="menu"
+data-page="investimentos">
+
+
+<span>📈</span>
+
 Investimentos
+
+
 </button>
 
-<button class="menu" data-page="limites">
+
+
+
+
+<button 
+class="menu"
+data-page="limites">
+
+
+<span>🎯</span>
+
 Limites
+
+
 </button>
 
-<button class="menu" data-page="desejos">
+
+
+
+
+<button 
+class="menu"
+data-page="desejos">
+
+
+<span>✨</span>
+
 Desejos
+
+
 </button>
+
+
+</nav>
+
+
+
+
+
+<div class="sidebar-footer">
+
+
+<p>
+Controle inteligente
+</p>
+
+
+<strong>
+Organiza+
+</strong>
+
+
+</div>
+
+
 
 </aside>
 
-<main>
 
-<header>
+
+
+
+
+
+
+
+<!-- ÁREA PRINCIPAL -->
+
+
+<main class="main">
+
+
+<header class="topbar">
+
+
+
+<div>
+
 
 <h1 id="tituloPagina">
 Dashboard
 </h1>
 
-<select id="mesSelecionado">
 
-<option>Janeiro 2026</option>
-<option>Fevereiro 2026</option>
-<option>Março 2026</option>
-<option>Abril 2026</option>
-<option selected>Maio 2026</option>
+<p id="subtituloPagina">
 
-</select>
+Acompanhe sua evolução financeira
 
-</header>
+</p>
 
-<section id="conteudo">
-
-</section>
-
-</main>
 
 </div>
 
+
+
+
+
+<div class="header-actions">
+
+
+<select id="mesSelecionado">
+
+
+<option>Janeiro 2026</option>
+
+<option>Fevereiro 2026</option>
+
+<option>Março 2026</option>
+
+<option>Abril 2026</option>
+
+<option selected>
+Maio 2026
+</option>
+
+
+</select>
+
+
+
+
+<button class="notification">
+
+🔔
+
+</button>
+
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+
+
+<!-- CONTEÚDO DINÂMICO -->
+
+
+<section id="conteudo">
+
+
+</section>
+
+
+
+
+
+</main>
+
+
+
+</div>
+
+
+
+
+
+
 <script src="main.js"></script>
 
+
 </body>
+
+
 </html>
