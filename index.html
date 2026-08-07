@@ -7,12 +7,13 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>AUREA | Sua vida financeira</title>
+
+<title>AUREA | Controle Financeiro</title>
 
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 
 <link rel="stylesheet" href="styles/global.css">
@@ -27,22 +28,27 @@
 <div class="app">
 
 
-<!-- SIDEBAR -->
+
+<!-- MENU LATERAL -->
 
 <aside class="sidebar">
 
 
-<div class="brand">
+<div class="logo">
 
-<h1>
-AUREA
-</h1>
+<h2>
+✨ AUREA
+</h2>
+
 
 <p>
-Controle financeiro inteligente
+Sua vida financeira organizada
 </p>
 
+
 </div>
+
+
 
 
 
@@ -51,7 +57,7 @@ Controle financeiro inteligente
 
 <button class="menu active" data-page="dashboard">
 
-<span>⌂</span>
+<span>🏠</span>
 
 Dashboard
 
@@ -59,13 +65,16 @@ Dashboard
 
 
 
+
 <button class="menu" data-page="financeiro">
 
 <span>💳</span>
 
-Financeiro
+Meu Financeiro
 
 </button>
+
+
 
 
 
@@ -79,6 +88,8 @@ Investimentos
 
 
 
+
+
 <button class="menu" data-page="limites">
 
 <span>🎯</span>
@@ -86,6 +97,8 @@ Investimentos
 Limites
 
 </button>
+
+
 
 
 
@@ -98,22 +111,26 @@ Desejos
 </button>
 
 
-
 </nav>
 
 
 
-<div class="profile-card">
+
+
+<div class="sidebar-footer">
 
 <p>
-Plano Premium
+Controle inteligente
 </p>
 
+
 <strong>
-AUREA+
+AUREA Premium
 </strong>
 
+
 </div>
+
 
 
 </aside>
@@ -122,36 +139,50 @@ AUREA+
 
 
 
-<!-- CONTEÚDO -->
 
-<main class="content">
+
+
+
+<!-- ÁREA PRINCIPAL -->
+
+
+<main class="main">
+
 
 
 <header class="topbar">
 
 
+
 <div>
 
-<h2 id="tituloPagina">
+
+<h1 id="tituloPagina">
 
 Dashboard
 
-</h2>
+</h1>
 
-<p>
 
-Olá, vamos organizar seu dinheiro hoje.
+<p id="subtituloPagina">
+
+Acompanhe sua evolução financeira
 
 </p>
+
 
 </div>
 
 
 
-<div class="actions">
+
+
+
+<div class="header-actions">
 
 
 <select id="mesSelecionado">
+
 
 <option>Janeiro 2026</option>
 
@@ -170,11 +201,16 @@ Maio 2026
 
 
 
-<button class="bell">
+
+
+
+<button class="notification">
 
 🔔
 
 </button>
+
+
 
 
 </div>
@@ -188,22 +224,8 @@ Maio 2026
 
 
 
+
 <section id="conteudo">
-
-
-<div id="dashboardContainer"></div>
-
-
-<div id="financeiroContainer"></div>
-
-
-<div id="investimentosContainer"></div>
-
-
-<div id="limitesContainer"></div>
-
-
-<div id="desejosContainer"></div>
 
 
 </section>
@@ -211,7 +233,10 @@ Maio 2026
 
 
 
+
+
 </main>
+
 
 
 
