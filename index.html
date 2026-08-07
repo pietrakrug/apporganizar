@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Organiza: controle financeiro pessoal com clareza visual e organização mensal."
+  />
+  <title>Organiza | Controle financeiro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="./styles/global.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="topbar container section">
+      <div>
+        <p class="label">Finanças</p>
+        <h1 class="page-title">Organiza</h1>
+        <p class="text-muted">
+          Controle financeiro pessoal com clareza visual e organização mensal.
+        </p>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="month-chip">Maio 2026</div>
+        <button class="primary-button" type="button">
+          + Nova transação
+        </button>
+      </div>
+    </header>
+
+    <nav class="tabs container" aria-label="Seções principais">
+      <button class="tab active" type="button" aria-current="page">
+        Dashboard
+      </button>
+
+      <button class="tab" type="button">
+        Meu Financeiro
+      </button>
+
+      <button class="tab" type="button">
+        Investimentos
+      </button>
+
+      <button class="tab" type="button">
+        Limites
+      </button>
+
+      <button class="tab" type="button">
+        Desejos
+      </button>
+    </nav>
+
+    <main class="container section dashboard-grid">
+      <section class="summary-grid" aria-label="Resumo financeiro">
+        <article class="card">
+          <div class="card-body">
+            <span class="label">Receitas</span>
+            <strong class="metric-value">R$ 6.600</strong>
+            <p class="text-muted">Entradas do mês atual.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-body">
+            <span class="label">Despesas</span>
+            <strong class="metric-value danger">R$ 635</strong>
+            <p class="text-muted">Saídas registradas até agora.</p>
+          </div>
+        </article>
+
+        <article class="card card-success">
+          <div class="card-body">
+            <span class="label">Saldo do mês</span>
+            <strong class="metric-value success">R$ 5.965</strong>
+            <p class="text-muted">Valor disponível neste ciclo.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-body">
+            <span class="label">Investimentos</span>
+            <strong class="metric-value">R$ 31.500</strong>
+            <p class="text-muted">Patrimônio aplicado no momento.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="card" aria-labelledby="alertas-title">
+        <div class="card-header">
+          <div>
+            <p class="card-title" id="alertas-title">Alertas inteligentes</p>
+            <p class="card-subtitle">
+              Leituras rápidas sobre vencimentos e comportamento financeiro.
+            </p>
+          </div>
+
+          <span class="status-pill">2 ativos</span>
+        </div>
+
+        <div class="card-body">
+          <div class="alert-box alert-warning">
+            <strong>Contas próximas do vencimento</strong>
+            <p>3 contas vencem em 3 dias: Netflix, Spotify e Água.</p>
+          </div>
+
+          <div class="alert-box alert-success">
+            <strong>Desempenho do mês</strong>
+            <p>Você está poupando 90,4% da sua renda neste mês.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <article class="card" aria-labelledby="gastos-title">
+          <div class="card-header">
+            <div>
+              <p class="card-title" id="gastos-title">Gastos por categoria</p>
+              <p class="card-subtitle">Mês atual</p>
+            </div>
+          </div>
+
+          <div class="category-layout">
+            <div
+              class="chart-ring"
+              role="img"
+              aria-label="Gráfico de gastos por categoria"
+            ></div>
+
+            <ul class="legend-list">
+              <li>
+                <span class="legend-left">
+                  <span class="dot moradia"></span>
+                  <span>Moradia</span>
+                </span>
+                <strong>R$ 1.300</strong>
+              </li>
+
+              <li>
+                <span class="legend-left">
+                  <span class="dot educacao"></span>
+                  <span>Educação</span>
+                </span>
+                <strong>R$ 450</strong>
+              </li>
+
+              <li>
+                <span class="legend-left">
+                  <span class="dot casa"></span>
+                  <span>Contas da casa</span>
+                </span>
+                <strong>R$ 225</strong>
+              </li>
+
+              <li>
+                <span class="legend-left">
+                  <span class="dot transporte"></span>
+                  <span>Transporte</span>
+                </span>
+                <strong>R$ 50</strong>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card" aria-labelledby="limites-title">
+          <div class="card-header">
+            <div>
+              <p class="card-title" id="limites-title">Limites por categoria</p>
+              <p class="card-subtitle">Acompanhe excessos</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="limit-item">
+              <div class="limit-header">
+                <span>Restaurante</span>
+                <span>R$ 180 / R$ 150</span>
+              </div>
+
+              <div
+                class="progress-track"
+                role="progressbar"
+                aria-label="Restaurante: limite ultrapassado"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="100"
+              >
+                <div class="progress-bar progress-danger" style="width: 100%"></div>
+              </div>
+
+              <small class="helper-text danger-text">
+                Limite excedido em R$ 30
+              </small>
+            </div>
+
+            <div class="limit-item">
+              <div class="limit-header">
+                <span>Transporte</span>
+                <span>R$ 50 / R$ 250</span>
+              </div>
+
+              <div
+                class="progress-track"
+                role="progressbar"
+                aria-label="Transporte: 20 por cento do limite utilizado"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="20"
+              >
+                <div class="progress-bar progress-success" style="width: 20%"></div>
+              </div>
+
+              <small class="helper-text">
+                Dentro do limite planejado.
+              </small>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="card" aria-labelledby="fixos-title">
+          <div class="card-header">
+            <div>
+              <p class="card-title" id="fixos-title">Custos fixos</p>
+              <p class="card-subtitle">
+                Despesas recorrentes do mês.
+              </p>
+            </div>
+
+            <button class="ghost-button" type="button">
+              + Novo custo
+            </button>
+          </div>
+
+          <div class="card-body">
+            <div class="list-item">
+              <span>Aluguel</span>
+              <strong>R$ 1.300,00</strong>
+            </div>
+
+            <div class="list-item">
+              <span>Internet / Telefone</span>
+              <strong>R$ 70,00</strong>
+            </div>
+
+            <div class="list-item">
+              <span>Academia</span>
+              <strong>R$ 150,00</strong>
+            </div>
+
+            <div class="list-item total">
+              <span>Total</span>
+              <strong>R$ 2.195,00</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" aria-labelledby="metas-title">
+          <div class="card-header">
+            <div>
+              <p class="card-title" id="metas-title">Desejos e metas</p>
+              <p class="card-subtitle">
+                Objetivos acompanhados com previsão de compra.
+              </p>
+            </div>
+
+            <span class="status-pill pink">35%</span>
+          </div>
+
+          <div class="goal-card">
+            <p class="label">Meta atual</p>
+            <h2 class="goal-title">Apple 2025 iPad</h2>
+            <strong class="goal-value">R$ 3.399,00</strong>
+
+            <p class="text-muted">
+              Guardado: R$ 1.200,00 · Estimativa: 5 meses
+            </p>
+
+            <div
+              class="progress-track pink-track"
+              role="progressbar"
+              aria-label="Progresso da meta Apple iPad"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="35"
+            >
+              <div class="progress-bar progress-pink" style="width: 35%"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="./main.js"></script>
+</body>
+</html>
