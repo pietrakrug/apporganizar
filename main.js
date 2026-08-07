@@ -56,41 +56,39 @@ dashboard: `
 
 <div class="cards">
 
-<div class="card">
 
+<div class="card">
 <h3>Receitas</h3>
-
-<p>R$ 0,00</p>
-
+<p id="dashboardReceitas">R$ 0,00</p>
 </div>
 
 
 <div class="card">
-
 <h3>Despesas</h3>
-
-<p>R$ 0,00</p>
-
+<p id="dashboardDespesas">R$ 0,00</p>
 </div>
 
 
 <div class="card">
-
 <h3>Saldo</h3>
-
-<p>R$ 0,00</p>
-
+<p id="dashboardSaldo">R$ 0,00</p>
 </div>
 
 
 <div class="card">
-
 <h3>Investimentos</h3>
+<p id="dashboardInvestimentos">R$ 0,00</p>
+</div>
 
-<p>R$ 0,00</p>
 
 </div>
 
+
+<div class="painel">
+
+<h3>Alertas Inteligentes</h3>
+
+<p>Nenhum alerta.</p>
 
 </div>
 
@@ -99,10 +97,12 @@ dashboard: `
 
 
 
+
 financeiro: `
 
 
 <h2>Meu Financeiro</h2>
+
 
 
 
@@ -114,12 +114,11 @@ financeiro: `
 <h3>Receita Mensal</h3>
 
 <p id="cardReceitas">
-
 R$ 0,00
-
 </p>
 
 </div>
+
 
 
 
@@ -128,12 +127,12 @@ R$ 0,00
 <h3>Custo Mensal</h3>
 
 <p id="cardCustos">
-
 R$ 0,00
-
 </p>
 
 </div>
+
+
 
 
 
@@ -142,12 +141,12 @@ R$ 0,00
 <h3>Total Dívidas</h3>
 
 <p id="cardDividas">
-
 R$ 0,00
-
 </p>
 
 </div>
+
+
 
 
 
@@ -156,15 +155,14 @@ R$ 0,00
 <h3>Total Investido</h3>
 
 <p id="cardInvestimentos">
-
 R$ 0,00
-
 </p>
 
 </div>
 
 
 </div>
+
 
 
 
@@ -174,6 +172,7 @@ R$ 0,00
 
 
 <h3>Receitas</h3>
+
 
 
 <button id="novaReceita">
@@ -189,10 +188,12 @@ R$ 0,00
 <div id="formReceita" style="display:none;margin-top:20px;">
 
 
+
 <input 
 id="descricaoReceita"
 placeholder="Descrição"
 />
+
 
 
 <input 
@@ -202,10 +203,13 @@ placeholder="Valor"
 />
 
 
+
 <input 
 id="dataReceita"
 type="date"
 />
+
+
 
 
 <input 
@@ -215,11 +219,13 @@ placeholder="Categoria"
 
 
 
+
 <button id="salvarReceita">
 
 Salvar
 
 </button>
+
 
 
 <button id="cancelarReceita">
@@ -235,6 +241,7 @@ Cancelar
 
 
 
+
 <div id="listaReceitas">
 
 Nenhuma receita cadastrada.
@@ -242,8 +249,101 @@ Nenhuma receita cadastrada.
 </div>
 
 
+</div>
+
+
+
+
+
+<div class="painel">
+
+
+<h3>Custos Fixos</h3>
+
+
+
+<button id="novoCustoFixo">
+
++ Novo Custo Fixo
+
+</button>
+
+
+
+
+
+<div id="formCustoFixo" style="display:none;margin-top:20px;">
+
+
+
+<input 
+id="nomeCustoFixo"
+placeholder="Nome da despesa"
+/>
+
+
+
+
+<input 
+id="valorCustoFixo"
+type="number"
+placeholder="Valor"
+/>
+
+
+
+
+
+<input 
+id="categoriaCustoFixo"
+placeholder="Categoria"
+/>
+
+
+
+
+
+<input 
+id="pagamentoCustoFixo"
+placeholder="Forma de pagamento"
+/>
+
+
+
+
+
+<button id="salvarCustoFixo">
+
+Salvar
+
+</button>
+
+
+
+<button id="cancelarCustoFixo">
+
+Cancelar
+
+</button>
+
+
 
 </div>
+
+
+
+
+
+<div id="listaCustosFixos">
+
+Nenhum custo fixo cadastrado.
+
+</div>
+
+
+
+</div>
+
 
 
 
@@ -262,6 +362,7 @@ investimentos: `
 
 
 
+
 limites: `
 
 <h2>Limites</h2>
@@ -269,6 +370,7 @@ limites: `
 <p>Em breve...</p>
 
 `,
+
 
 
 
@@ -281,8 +383,8 @@ desejos: `
 `
 
 
-};
 
+};
 
 
 
@@ -298,6 +400,7 @@ document.getElementById("conteudo");
 
 conteudo.innerHTML =
 paginas.dashboard;
+
 
 
 
@@ -334,24 +437,25 @@ paginas[botao.dataset.page];
 
 if(botao.dataset.page === "financeiro"){
 
+
 renderReceitas();
 
+
+renderCustosFixos();
+
+
 }
+
 
 
 };
 
 
+
 });
-
-
-
-
-
 //=============================
-// RECEITAS
+// EVENTOS
 //=============================
-
 
 
 document.addEventListener(
@@ -360,35 +464,40 @@ function(e){
 
 
 
-if(e.target.id === "novaReceita"){
+// RECEITAS
 
+if(e.target.id === "novaReceita"){
 
 document.getElementById("formReceita")
 .style.display="block";
 
-
 }
-
 
 
 
 if(e.target.id === "cancelarReceita"){
 
-
 document.getElementById("formReceita")
 .style.display="none";
 
-
 }
-
 
 
 
 if(e.target.id === "salvarReceita"){
 
-
 salvarReceita();
 
+}
+
+
+
+
+if(e.target.dataset.excluirReceita){
+
+excluirReceita(
+Number(e.target.dataset.excluirReceita)
+);
 
 }
 
@@ -396,13 +505,40 @@ salvarReceita();
 
 
 
-if(e.target.dataset.excluir){
+// CUSTOS FIXOS
 
 
-excluirReceita(
-Number(e.target.dataset.excluir)
+if(e.target.id === "novoCustoFixo"){
+
+document.getElementById("formCustoFixo")
+.style.display="block";
+
+}
+
+
+
+if(e.target.id === "cancelarCustoFixo"){
+
+document.getElementById("formCustoFixo")
+.style.display="none";
+
+}
+
+
+
+if(e.target.id === "salvarCustoFixo"){
+
+salvarCustoFixo();
+
+}
+
+
+
+if(e.target.dataset.excluirCusto){
+
+excluirCustoFixo(
+Number(e.target.dataset.excluirCusto)
 );
-
 
 }
 
@@ -413,7 +549,9 @@ Number(e.target.dataset.excluir)
 
 
 
-
+//=============================
+// RECEITAS
+//=============================
 
 
 function salvarReceita(){
@@ -445,12 +583,9 @@ document.getElementById("categoriaReceita").value;
 
 if(!descricao || !valor){
 
-
 alert("Preencha descrição e valor");
 
-
 return;
-
 
 }
 
@@ -459,20 +594,17 @@ return;
 
 DB.receitas.push({
 
-
 id: Date.now(),
 
-descricao: descricao,
+descricao,
 
-valor: valor,
+valor,
 
-data: data,
+data,
 
-categoria: categoria
-
+categoria
 
 });
-
 
 
 
@@ -484,12 +616,38 @@ renderReceitas();
 
 
 
+limparCamposReceita();
+
+
+
 document.getElementById("formReceita")
 .style.display="none";
 
 
 
 }
+
+
+
+
+function limparCamposReceita(){
+
+
+document.getElementById("descricaoReceita").value="";
+
+
+document.getElementById("valorReceita").value="";
+
+
+document.getElementById("dataReceita").value="";
+
+
+document.getElementById("categoriaReceita").value="";
+
+
+}
+
+
 
 
 
@@ -511,7 +669,6 @@ return;
 
 
 
-
 if(DB.receitas.length === 0){
 
 
@@ -521,17 +678,15 @@ lista.innerHTML =
 
 return;
 
-
 }
 
 
 
 
 
-let html = "";
+let html="";
 
-let total = 0;
-
+let total=0;
 
 
 
@@ -540,7 +695,6 @@ DB.receitas.forEach(receita=>{
 
 
 total += receita.valor;
-
 
 
 
@@ -560,6 +714,7 @@ ${receita.descricao}
 
 <p>
 
+Valor:
 R$ ${receita.valor.toLocaleString(
 "pt-BR",
 {
@@ -589,8 +744,8 @@ ${receita.data || "-"}
 
 
 
-
-<button data-excluir="${receita.id}">
+<button 
+data-excluir-receita="${receita.id}">
 
 Excluir
 
@@ -599,6 +754,7 @@ Excluir
 
 
 </div>
+
 
 
 `;
@@ -610,9 +766,7 @@ Excluir
 
 
 
-
 lista.innerHTML = html;
-
 
 
 
@@ -644,11 +798,9 @@ function excluirReceita(id){
 DB.receitas =
 
 DB.receitas.filter(
-
-receita => receita.id !== id
-
+receita =>
+receita.id !== id
 );
-
 
 
 
@@ -657,6 +809,283 @@ salvarDados();
 
 
 renderReceitas();
+
+
+
+}
+
+
+
+
+
+//=============================
+// CUSTOS FIXOS
+//=============================
+
+
+
+function salvarCustoFixo(){
+
+
+
+const nome =
+document.getElementById("nomeCustoFixo").value;
+
+
+
+const valor =
+Number(
+document.getElementById("valorCustoFixo").value
+);
+
+
+
+const categoria =
+document.getElementById("categoriaCustoFixo").value;
+
+
+
+const pagamento =
+document.getElementById("pagamentoCustoFixo").value;
+
+
+
+
+
+if(!nome || !valor){
+
+alert("Preencha nome e valor");
+
+return;
+
+}
+
+
+
+
+DB.custosFixos.push({
+
+id:Date.now(),
+
+nome,
+
+valor,
+
+categoria,
+
+pagamento
+
+});
+
+
+
+
+salvarDados();
+
+
+
+renderCustosFixos();
+
+
+
+limparCamposCustoFixo();
+
+
+
+document.getElementById("formCustoFixo")
+.style.display="none";
+
+
+
+}
+
+
+
+
+
+function limparCamposCustoFixo(){
+
+
+document.getElementById("nomeCustoFixo").value="";
+
+
+document.getElementById("valorCustoFixo").value="";
+
+
+document.getElementById("categoriaCustoFixo").value="";
+
+
+document.getElementById("pagamentoCustoFixo").value="";
+
+
+}
+
+
+
+
+
+function renderCustosFixos(){
+
+
+
+const lista =
+document.getElementById("listaCustosFixos");
+
+
+
+if(!lista){
+
+return;
+
+}
+
+
+
+
+
+if(DB.custosFixos.length === 0){
+
+
+lista.innerHTML =
+"Nenhum custo fixo cadastrado.";
+
+
+return;
+
+
+}
+
+
+
+
+let html="";
+
+let total=0;
+
+
+
+
+DB.custosFixos.forEach(custo=>{
+
+
+total += custo.valor;
+
+
+
+
+html += `
+
+
+<div class="card">
+
+
+<h4>
+
+${custo.nome}
+
+</h4>
+
+
+
+<p>
+
+Valor:
+R$ ${custo.valor.toLocaleString(
+"pt-BR",
+{
+minimumFractionDigits:2
+}
+)}
+
+</p>
+
+
+
+<p>
+
+Categoria:
+${custo.categoria || "-"}
+
+</p>
+
+
+
+<p>
+
+Pagamento:
+${custo.pagamento || "-"}
+
+</p>
+
+
+
+<button
+data-excluir-custo="${custo.id}">
+
+Excluir
+
+</button>
+
+
+
+</div>
+
+
+
+`;
+
+
+
+});
+
+
+
+
+lista.innerHTML = html;
+
+
+
+
+document.getElementById("cardCustos")
+.innerHTML =
+
+"R$ " +
+
+total.toLocaleString(
+"pt-BR",
+{
+minimumFractionDigits:2
+}
+);
+
+
+
+}
+
+
+
+
+
+function excluirCustoFixo(id){
+
+
+
+DB.custosFixos =
+
+DB.custosFixos.filter(
+
+custo =>
+custo.id !== id
+
+);
+
+
+
+salvarDados();
+
+
+
+renderCustosFixos();
 
 
 
