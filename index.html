@@ -16,7 +16,9 @@
 <p class="text-muted">Controle financeiro pessoal com clareza visual.</p>
 </div>
 <div class="topbar-actions">
+<button class="ghost-button" id="prevMonthBtn" type="button">&lt;</button>
 <div class="month-chip" id="monthChip">Mes atual</div>
+<button class="ghost-button" id="nextMonthBtn" type="button">&gt;</button>
 <button class="primary-button" id="openFormBtn" type="button">+ Nova transacao</button>
 </div>
 </header>
@@ -34,6 +36,9 @@
 </select>
 <input type="text" id="categoryInput" placeholder="Categoria" />
 <input type="date" id="dateInput" required />
+<label style="display:flex; align-items:center; gap:8px; font-size:0.875rem; color:#64748b;">
+<input type="checkbox" id="plannedInput" style="width:auto;" /> Planejado (previsto, ainda nao efetivado)
+</label>
 <div style="display:flex; gap:10px;">
 <button type="submit" class="primary-button">Salvar</button>
 <button type="button" id="cancelFormBtn" class="ghost-button">Cancelar</button>
@@ -60,12 +65,36 @@
 <strong class="metric-value success" id="totalBalance">R$ 0,00</strong>
 </div>
 </article>
+<article class="card">
+<div class="card-body">
+<span class="label">Planejado (previsto)</span>
+<strong class="metric-value" id="totalPlanned">R$ 0,00</strong>
+<p class="text-muted" id="plannedHint">Saldo previsto somando itens planejados.</p>
+</div>
+</article>
 </section>
 
 <section class="card">
-<div class="card-header"><p class="card-title">Transacoes</p></div>
+<div class="card-header">
+<div>
+<p class="card-title">Transacoes do mes</p>
+<p class="card-subtitle" id="listSubtitle">Efetivadas e planejadas</p>
+</div>
+</div>
 <div class="card-body" id="transactionList">
 <p class="text-muted">Nenhuma transacao cadastrada ainda.</p>
+</div>
+</section>
+
+<section class="card">
+<div class="card-header">
+<div>
+<p class="card-title">Resumo mensal (historico e planejamento)</p>
+<p class="card-subtitle">Ultimos e proximos meses com base nas transacoes cadastradas.</p>
+</div>
+</div>
+<div class="card-body" id="monthlySummary">
+<p class="text-muted">Sem dados suficientes ainda.</p>
 </div>
 </section>
 
