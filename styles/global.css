@@ -1,61 +1,89 @@
+/* ======================================
+   AUREA
+   DESIGN SYSTEM
+====================================== */
+
+
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Inter',sans-serif;
+
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+
 }
+
 
 
 body{
 
-    background:#f8fafc;
-    color:#1e293b;
+background:#f7f5f0;
+color:#1f2937;
 
 }
 
+
+
+/* ======================================
+   ESTRUTURA
+====================================== */
 
 
 .app{
 
-    display:flex;
-    min-height:100vh;
+display:flex;
+min-height:100vh;
 
 }
 
 
 
-/* ==========================
-SIDEBAR
-========================== */
+
+
+/* ======================================
+   SIDEBAR
+====================================== */
 
 
 .sidebar{
 
-    width:270px;
-    background:#111827;
-    color:white;
-    padding:28px 20px;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+width:260px;
+
+background:#111827;
+
+color:white;
+
+padding:32px 22px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:space-between;
 
 }
 
 
 
-.logo h2{
+.brand h1{
 
-    font-size:26px;
-    margin-bottom:8px;
+font-size:32px;
+
+letter-spacing:2px;
+
+color:#d6b36a;
 
 }
 
 
 
-.logo p{
+.brand p{
 
-    color:#9ca3af;
-    font-size:13px;
+margin-top:8px;
+
+font-size:13px;
+
+color:#cbd5e1;
 
 }
 
@@ -64,28 +92,47 @@ SIDEBAR
 
 nav{
 
-    margin-top:35px;
+margin-top:40px;
 
 }
 
 
 
-
 .menu{
 
-    width:100%;
-    border:none;
-    background:transparent;
-    color:#d1d5db;
-    padding:15px;
-    border-radius:14px;
-    margin-bottom:8px;
-    cursor:pointer;
-    font-size:15px;
-    display:flex;
-    gap:12px;
-    align-items:center;
-    transition:.25s;
+width:100%;
+
+border:none;
+
+background:none;
+
+color:#cbd5e1;
+
+padding:15px 18px;
+
+border-radius:14px;
+
+display:flex;
+
+gap:12px;
+
+align-items:center;
+
+font-size:15px;
+
+cursor:pointer;
+
+margin-bottom:10px;
+
+transition:.25s;
+
+}
+
+
+
+.menu span{
+
+font-size:20px;
 
 }
 
@@ -93,8 +140,9 @@ nav{
 
 .menu:hover{
 
-    background:#1f2937;
-    color:white;
+background:#1f2937;
+
+color:white;
 
 }
 
@@ -102,42 +150,67 @@ nav{
 
 .menu.active{
 
-    background:#2563eb;
-    color:white;
+background:#d6b36a;
 
-}
+color:#111827;
 
-
-
-.sidebar-footer{
-
-    background:#1f2937;
-    padding:18px;
-    border-radius:16px;
-
-}
-
-
-.sidebar-footer p{
-
-    color:#9ca3af;
-    font-size:12px;
+font-weight:600;
 
 }
 
 
 
 
-/* ==========================
-MAIN
-========================== */
 
 
-.main{
+.profile-card{
 
-    flex:1;
-    padding:35px;
-    overflow:auto;
+background:#1f2937;
+
+padding:18px;
+
+border-radius:18px;
+
+}
+
+
+
+.profile-card p{
+
+font-size:12px;
+
+color:#9ca3af;
+
+}
+
+
+
+.profile-card strong{
+
+display:block;
+
+margin-top:8px;
+
+font-size:18px;
+
+color:#d6b36a;
+
+}
+
+
+
+
+
+/* ======================================
+   ÁREA PRINCIPAL
+====================================== */
+
+
+.content{
+
+flex:1;
+
+padding:35px;
 
 }
 
@@ -146,39 +219,43 @@ MAIN
 
 .topbar{
 
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:35px;
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+margin-bottom:35px;
 
 }
 
 
 
-.topbar h1{
+.topbar h2{
 
-    font-size:32px;
-    font-weight:700;
-
-}
-
-
-
-#subtituloPagina{
-
-    margin-top:5px;
-    color:#64748b;
+font-size:32px;
 
 }
 
 
 
+.topbar p{
 
-.header-actions{
+color:#6b7280;
 
-    display:flex;
-    gap:12px;
-    align-items:center;
+margin-top:5px;
+
+}
+
+
+
+.actions{
+
+display:flex;
+
+gap:12px;
+
+align-items:center;
 
 }
 
@@ -186,25 +263,37 @@ MAIN
 
 select{
 
-    background:white;
-    border:1px solid #e2e8f0;
-    padding:12px 18px;
-    border-radius:14px;
-    font-size:14px;
+padding:12px 18px;
+
+border-radius:14px;
+
+border:1px solid #e5e7eb;
+
+background:white;
+
+font-size:14px;
 
 }
 
 
 
-.notification{
+.bell{
 
-    width:45px;
-    height:45px;
-    border:none;
-    background:white;
-    border-radius:50%;
-    cursor:pointer;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+border:none;
+
+background:white;
+
+width:45px;
+
+height:45px;
+
+border-radius:50%;
+
+cursor:pointer;
+
+font-size:18px;
+
+box-shadow:0 5px 15px rgba(0,0,0,.05);
 
 }
 
@@ -212,33 +301,34 @@ select{
 
 
 
-
-/* ==========================
-CARDS
-========================== */
+/* ======================================
+   DASHBOARD CARDS
+====================================== */
 
 
 .cards{
 
-    display:grid;
-    grid-template-columns:
-    repeat(auto-fit,minmax(230px,1fr));
+display:grid;
 
-    gap:20px;
-    margin-bottom:30px;
+grid-template-columns:repeat(4,1fr);
+
+gap:20px;
 
 }
-
 
 
 
 .card{
 
-    background:white;
-    padding:25px;
-    border-radius:22px;
-    box-shadow:
-    0 8px 30px rgba(15,23,42,.06);
+background:white;
+
+padding:25px;
+
+border-radius:24px;
+
+box-shadow:
+
+0 15px 40px rgba(0,0,0,.05);
 
 }
 
@@ -246,41 +336,47 @@ CARDS
 
 .card h3{
 
-    color:#64748b;
-    font-size:14px;
-    font-weight:500;
-    margin-bottom:12px;
+font-size:14px;
+
+color:#6b7280;
+
+font-weight:500;
 
 }
 
 
 
-.card strong{
+.card p{
 
-    font-size:30px;
-    font-weight:700;
+font-size:30px;
+
+font-weight:700;
+
+margin-top:12px;
 
 }
 
 
 
 
-
-
-/* ==========================
-PAINEIS
-========================== */
+/* ======================================
+   PAINÉIS
+====================================== */
 
 
 .painel{
 
-    background:white;
-    padding:28px;
-    border-radius:22px;
-    margin-top:25px;
+background:white;
 
-    box-shadow:
-    0 8px 30px rgba(15,23,42,.06);
+padding:28px;
+
+border-radius:24px;
+
+margin-top:25px;
+
+box-shadow:
+
+0 15px 40px rgba(0,0,0,.05);
 
 }
 
@@ -288,7 +384,9 @@ PAINEIS
 
 .painel h3{
 
-    margin-bottom:20px;
+font-size:20px;
+
+margin-bottom:20px;
 
 }
 
@@ -296,17 +394,36 @@ PAINEIS
 
 
 
-
-/* ==========================
-BOTÕES
-========================== */
+/* ======================================
+   BOTÕES
+====================================== */
 
 
 button{
 
-    border:none;
-    cursor:pointer;
-    transition:.2s;
+font-family:inherit;
+
+}
+
+
+
+button[id^="salvar"],
+button[id^="novo"],
+button[id^="nova"]{
+
+background:#d6b36a;
+
+border:none;
+
+padding:12px 20px;
+
+border-radius:12px;
+
+cursor:pointer;
+
+font-weight:600;
+
+color:#111827;
 
 }
 
@@ -314,7 +431,7 @@ button{
 
 button:hover{
 
-    transform:translateY(-2px);
+transform:translateY(-2px);
 
 }
 
@@ -322,20 +439,25 @@ button:hover{
 
 
 
-
-/* ==========================
-INPUTS
-========================== */
+/* ======================================
+   INPUTS
+====================================== */
 
 
 input,
 textarea{
 
-    width:100%;
-    padding:13px;
-    border-radius:12px;
-    border:1px solid #e2e8f0;
-    margin-bottom:12px;
+width:100%;
+
+padding:14px;
+
+border-radius:14px;
+
+border:1px solid #e5e7eb;
+
+margin-bottom:12px;
+
+outline:none;
 
 }
 
@@ -343,8 +465,7 @@ textarea{
 
 input:focus{
 
-    border-color:#2563eb;
-    outline:none;
+border-color:#d6b36a;
 
 }
 
@@ -352,54 +473,105 @@ input:focus{
 
 
 
-/* ==========================
-DONUT
-========================== */
+
+/* ======================================
+   LISTAS
+====================================== */
 
 
-.grafico-area{
+.item{
 
-    display:flex;
-    align-items:center;
-    gap:40px;
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+background:#f9fafb;
+
+padding:18px;
+
+border-radius:16px;
+
+margin-top:12px;
 
 }
 
 
+
+.item button{
+
+background:#fee2e2;
+
+border:none;
+
+padding:8px 12px;
+
+border-radius:10px;
+
+cursor:pointer;
+
+color:#991b1b;
+
+}
+
+
+
+
+/* ======================================
+   GRÁFICOS
+====================================== */
 
 
 .donut{
 
-    width:220px;
-    height:220px;
-    border-radius:50%;
+width:220px;
 
-    background:
-    conic-gradient(
-    #2563eb 0% 30%,
-    #22c55e 30% 55%,
-    #f59e0b 55% 75%,
-    #ef4444 75%
-    );
+height:220px;
 
-    position:relative;
+border-radius:50%;
+
+background:
+
+conic-gradient(
+
+#d6b36a 0deg,
+
+#22c55e 120deg,
+
+#ef4444 220deg,
+
+#e5e7eb 360deg
+
+);
+
+margin:auto;
+
+position:relative;
 
 }
-
 
 
 
 .donut::after{
 
-    content:"";
-    position:absolute;
-    width:120px;
-    height:120px;
-    background:white;
-    border-radius:50%;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
+content:"";
+
+position:absolute;
+
+width:130px;
+
+height:130px;
+
+background:white;
+
+border-radius:50%;
+
+top:50%;
+
+left:50%;
+
+transform:translate(-50%,-50%);
 
 }
 
@@ -407,33 +579,33 @@ DONUT
 
 
 
+/* ======================================
+   RESPONSIVO
+====================================== */
 
-/* ==========================
-RESPONSIVO
-========================== */
 
-
-@media(max-width:900px){
+@media(max-width:1000px){
 
 
 .app{
 
-    flex-direction:column;
+flex-direction:column;
 
 }
+
 
 
 .sidebar{
 
-    width:100%;
+width:100%;
 
 }
 
 
 
-.main{
+.cards{
 
-    padding:20px;
+grid-template-columns:1fr;
 
 }
 
@@ -441,17 +613,19 @@ RESPONSIVO
 
 .topbar{
 
-    flex-direction:column;
-    align-items:flex-start;
-    gap:20px;
+flex-direction:column;
+
+align-items:flex-start;
+
+gap:20px;
 
 }
 
 
 
-.grafico-area{
+.content{
 
-    flex-direction:column;
+padding:20px;
 
 }
 
