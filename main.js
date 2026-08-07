@@ -1,7 +1,9 @@
 /* =====================================
-   AUREA
-   MAIN.JS
-   PARTE 1/5
+AUREA
+MAIN.JS
+PARTE 1/4
+
+BANCO DE DADOS + NAVEGAÇÃO + ESTRUTURA
 ===================================== */
 
 
@@ -22,6 +24,7 @@ limites: [],
 
 desejos: [],
 
+
 config: {
 
 mes: new Date().getMonth(),
@@ -29,6 +32,7 @@ mes: new Date().getMonth(),
 ano: new Date().getFullYear()
 
 }
+
 
 };
 
@@ -52,20 +56,45 @@ JSON.stringify(DB)
 
 
 
+
 function carregar(){
 
 const dados =
-localStorage.getItem("AUREA_DB");
+localStorage.getItem(
+"AUREA_DB"
+);
+
 
 
 if(dados){
 
-Object.assign(
-DB,
-JSON.parse(dados)
-);
+const banco =
+JSON.parse(dados);
+
+
+
+DB.receitas =
+banco.receitas || [];
+
+DB.despesas =
+banco.despesas || [];
+
+DB.investimentos =
+banco.investimentos || [];
+
+DB.limites =
+banco.limites || [];
+
+DB.desejos =
+banco.desejos || [];
+
+DB.config =
+banco.config || DB.config;
+
 
 }
+
+
 
 }
 
@@ -77,9 +106,21 @@ carregar();
 
 
 
+
+
 /* ===============================
-AUXILIARES
+UTILIDADES
 ================================ */
+
+
+function id(){
+
+return Date.now();
+
+}
+
+
+
 
 
 function moeda(valor){
@@ -99,9 +140,12 @@ currency:"BRL"
 
 
 
-function id(){
+function dataAtual(){
 
-return Date.now();
+return new Date()
+.toLocaleDateString(
+"pt-BR"
+);
 
 }
 
@@ -111,13 +155,14 @@ return Date.now();
 
 function mostrar(id){
 
-const elemento =
+const el =
 document.getElementById(id);
 
 
-if(elemento){
 
-elemento.style.display="block";
+if(el){
+
+el.style.display="block";
 
 }
 
@@ -129,44 +174,127 @@ elemento.style.display="block";
 
 function esconder(id){
 
-const elemento =
+const el =
 document.getElementById(id);
 
 
-if(elemento){
 
-elemento.style.display="none";
+if(el){
+
+el.style.display="none";
 
 }
 
 }
+
+
+
+
 
 
 
 
 
 /* ===============================
-NAVEGAÇÃO
+CÁLCULOS PRINCIPAIS
+================================ */
+
+
+function totalReceitas(){
+
+return DB.receitas.reduce(
+((total,item)=>
+total + Number(item.valor)),
+0
+);
+
+}
+
+
+
+
+
+function totalDespesas(){
+
+return DB.despesas.reduce(
+((total,item)=>
+total + Number(item.valor)),
+0
+);
+
+}
+
+
+
+
+
+function totalInvestimentos(){
+
+return DB.investimentos.reduce(
+((total,item)=>
+total + Number(item.valor)),
+0
+);
+
+}
+
+
+
+
+
+function saldo(){
+
+return totalReceitas()
+-
+totalDespesas();
+
+}
+
+
+
+
+
+
+
+
+
+/* ===============================
+ELEMENTO PRINCIPAL
 ================================ */
 
 
 const conteudo =
-document.getElementById("conteudo");
+document.getElementById(
+"conteudo"
+);
 
+
+
+
+
+
+
+
+/* ===============================
+PÁGINAS
+================================ */
 
 
 const paginas = {
-
 
 dashboard:`
 
 <div class="containerTela">
 
+
 <div class="cards">
+
 
 <div class="card">
 
-<h3>Receitas</h3>
+<h3>
+Receitas
+</h3>
 
 <p id="dashReceitas">
 R$ 0,00
@@ -175,9 +303,12 @@ R$ 0,00
 </div>
 
 
+
 <div class="card">
 
-<h3>Despesas</h3>
+<h3>
+Despesas
+</h3>
 
 <p id="dashDespesas">
 R$ 0,00
@@ -187,9 +318,12 @@ R$ 0,00
 
 
 
+
 <div class="card">
 
-<h3>Saldo Atual</h3>
+<h3>
+Saldo Atual
+</h3>
 
 <p id="dashSaldo">
 R$ 0,00
@@ -199,9 +333,12 @@ R$ 0,00
 
 
 
+
 <div class="card">
 
-<h3>Investimentos</h3>
+<h3>
+Investimentos
+</h3>
 
 <p id="dashInvestimentos">
 R$ 0,00
@@ -214,10 +351,11 @@ R$ 0,00
 
 
 
+
 <div class="painel">
 
 <h3>
-Resumo Financeiro
+Resumo financeiro
 </h3>
 
 
@@ -227,6 +365,41 @@ Resumo Financeiro
 
 
 </div>
+
+
+
+
+<div class="painel">
+
+<h3>
+Alertas
+</h3>
+
+
+<div id="alertas">
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="painel">
+
+<h3>
+Gastos por categoria
+</h3>
+
+
+<div id="categoriasGrafico">
+
+</div>
+
+
+</div>
+
 
 
 </div>
@@ -245,14 +418,10 @@ financeiro:`
 <div class="painel">
 
 
-<h3>
-Meu Financeiro
-</h3>
-
-
 <button id="novoLancamento">
 + Novo lançamento
 </button>
+
 
 
 <div id="formLancamento"
@@ -264,26 +433,30 @@ id="descricao"
 placeholder="Descrição">
 
 
-<input
+<input 
 id="valor"
 type="number"
 placeholder="Valor">
 
 
-<select id="tipo">
 
+<select id="tipo">
 
 <option value="receita">
 Receita
 </option>
 
-
 <option value="despesa">
 Despesa
 </option>
 
-
 </select>
+
+
+
+<input 
+id="categoria"
+placeholder="Categoria">
 
 
 
@@ -294,15 +467,18 @@ Salvar
 </button>
 
 
+
 </div>
 
 
+
 </div>
+
+
 
 
 
 <div class="painel">
-
 
 <h3>
 Histórico
@@ -324,7 +500,6 @@ Histórico
 
 
 
-
 investimentos:`
 
 <div class="containerTela">
@@ -332,30 +507,27 @@ investimentos:`
 
 <div class="painel">
 
-<h3>
-Meus Investimentos
-</h3>
-
 
 <button id="novoInvestimento">
-
 + Novo investimento
-
 </button>
+
 
 
 <div id="formInvestimento"
 style="display:none">
 
 
-<input id="nomeInvestimento"
-placeholder="Nome">
+<input
+id="nomeInvestimento"
+placeholder="Nome investimento">
 
 
-<input 
+<input
 id="valorInvestimento"
 type="number"
 placeholder="Valor">
+
 
 
 <button id="salvarInvestimento">
@@ -371,11 +543,12 @@ Salvar
 </div>
 
 
+
 <div class="painel">
 
-<h3>
-Carteira
 
+<h3>
+Meus investimentos
 </h3>
 
 
@@ -403,12 +576,7 @@ limites:`
 <div class="painel">
 
 
-<h3>
-Limites de gastos
-</h3>
-
-
-<input
+<input 
 id="categoriaLimite"
 placeholder="Categoria">
 
@@ -417,6 +585,7 @@ placeholder="Categoria">
 id="valorLimite"
 type="number"
 placeholder="Limite">
+
 
 
 <button id="salvarLimite">
@@ -429,7 +598,13 @@ Salvar limite
 </div>
 
 
+
+
 <div class="painel">
+
+<h3>
+Controle de limites
+</h3>
 
 
 <div id="listaLimites">
@@ -438,6 +613,7 @@ Salvar limite
 
 
 </div>
+
 
 
 </div>
@@ -456,21 +632,20 @@ desejos:`
 <div class="painel">
 
 
-<h3>
-Metas e desejos
-
-</h3>
-
-
 <input
 id="nomeDesejo"
-placeholder="Objetivo">
+placeholder="Nome da meta">
 
 
 <input
 id="valorDesejo"
 type="number"
-placeholder="Valor da meta">
+placeholder="Valor">
+
+
+<input
+id="prazoDesejo"
+placeholder="Prazo">
 
 
 <button id="salvarDesejo">
@@ -484,7 +659,13 @@ Criar meta
 
 
 
+
 <div class="painel">
+
+
+<h3>
+Meus objetivos
+</h3>
 
 
 <div id="listaDesejos">
@@ -506,6 +687,12 @@ Criar meta
 
 
 
+
+/* ===============================
+CARREGAR PÁGINA
+================================ */
+
+
 function carregarPagina(nome){
 
 
@@ -513,20 +700,25 @@ conteudo.innerHTML =
 paginas[nome];
 
 
+
 if(nome==="dashboard")
 renderDashboard();
+
 
 
 if(nome==="financeiro")
 renderFinanceiro();
 
 
+
 if(nome==="investimentos")
 renderInvestimentos();
 
 
+
 if(nome==="limites")
 renderLimites();
+
 
 
 if(nome==="desejos")
@@ -537,10 +729,22 @@ renderDesejos();
 
 
 
-carregarPagina("dashboard");
 
 
 
+carregarPagina(
+"dashboard"
+);
+
+
+
+
+
+
+
+/* ===============================
+MENU
+================================ */
 
 
 document
@@ -553,13 +757,19 @@ botao.onclick=function(){
 
 document
 .querySelectorAll(".menu")
-.forEach(x=>
-x.classList.remove("active")
+.forEach(item=>
+
+item.classList.remove(
+"active"
+)
+
 );
 
 
 
-botao.classList.add("active");
+botao.classList.add(
+"active"
+);
 
 
 
@@ -569,10 +779,20 @@ botao.dataset.page
 
 
 
-document
-.getElementById("tituloPagina")
-.innerHTML =
+const titulo =
+document.getElementById(
+"tituloPagina"
+);
+
+
+
+if(titulo){
+
+titulo.innerHTML =
 botao.innerText;
+
+}
+
 
 
 };
@@ -580,73 +800,12 @@ botao.innerText;
 
 });
 /* =====================================
-   AUREA
-   MAIN.JS
-   PARTE 2/5
+AUREA
+MAIN.JS
+PARTE 2/4
 
-   DASHBOARD + FINANCEIRO
+DASHBOARD + FINANCEIRO
 ===================================== */
-
-
-
-/* ===============================
-CÁLCULOS
-================================ */
-
-
-function totalReceitas(){
-
-return DB.receitas.reduce(
-(total,item)=>
-total + Number(item.valor),
-0
-);
-
-}
-
-
-
-
-
-function totalDespesas(){
-
-return DB.despesas.reduce(
-(total,item)=>
-total + Number(item.valor),
-0
-);
-
-}
-
-
-
-
-
-function totalInvestimentos(){
-
-return DB.investimentos.reduce(
-(total,item)=>
-total + Number(item.valor),
-0
-);
-
-}
-
-
-
-
-
-function saldo(){
-
-return totalReceitas()
--
-totalDespesas();
-
-}
-
-
-
-
 
 
 
@@ -658,31 +817,51 @@ DASHBOARD
 function renderDashboard(){
 
 
+const receita =
+document.getElementById(
+"dashReceitas"
+);
+
+
+
+if(!receita)return;
+
+
+
 document.getElementById(
 "dashReceitas"
 ).innerHTML =
-moeda(totalReceitas());
+moeda(
+totalReceitas()
+);
 
 
 
 document.getElementById(
 "dashDespesas"
 ).innerHTML =
-moeda(totalDespesas());
+moeda(
+totalDespesas()
+);
 
 
 
 document.getElementById(
 "dashSaldo"
 ).innerHTML =
-moeda(saldo());
+moeda(
+saldo()
+);
 
 
 
 document.getElementById(
 "dashInvestimentos"
 ).innerHTML =
-moeda(totalInvestimentos());
+moeda(
+totalInvestimentos()
+);
+
 
 
 
@@ -697,75 +876,74 @@ document.getElementById(
 if(resumo){
 
 
-let mensagem="";
+let percentual = 0;
 
 
 
-if(saldo()<0){
+if(totalReceitas()>0){
 
-
-mensagem=`
-
-<p>
-⚠️ Atenção: suas despesas estão maiores que suas receitas.
-</p>
-
-`;
-
-
-
-}else{
-
-
-mensagem=`
-
-<p>
-✅ Sua organização financeira está positiva.
-</p>
-
-`;
+percentual =
+(totalDespesas()
+/
+totalReceitas())
+*100;
 
 }
 
 
 
-const percentual =
-totalReceitas()>0
-?
-(totalDespesas()/totalReceitas())*100
-:
-0;
+resumo.innerHTML = `
 
 
+<div class="item">
 
-mensagem += `
-
-
-<p>
-
-Você utilizou 
 <strong>
-${percentual.toFixed(0)}%
+Utilização da renda
 </strong>
 
-da sua renda.
 
-</p>
+<span>
+${percentual.toFixed(0)}%
+</span>
+
+
+</div>
+
+
+
+<div class="item">
+
+<strong>
+Saldo disponível
+</strong>
+
+
+<span class="saldo">
+
+${moeda(saldo())}
+
+</span>
+
+
+</div>
 
 
 `;
 
+}
 
 
-resumo.innerHTML =
-mensagem;
+
+gerarAlertas();
+
+gerarCategorias();
 
 
 }
 
 
 
-}
+
 
 
 
@@ -776,27 +954,34 @@ FINANCEIRO
 ================================ */
 
 
+
 function renderFinanceiro(){
+
 
 
 renderListaFinanceiro();
 
 
-const botaoNovo =
+
+
+const novo =
 document.getElementById(
 "novoLancamento"
 );
 
 
 
-if(botaoNovo){
+if(novo){
 
 
-botaoNovo.onclick=function(){
+
+novo.onclick=function(){
+
 
 mostrar(
 "formLancamento"
 );
+
 
 };
 
@@ -807,17 +992,20 @@ mostrar(
 
 
 
-const salvar =
+
+const salvarBtn =
 document.getElementById(
 "salvarLancamento"
 );
 
 
 
-if(salvar){
+if(salvarBtn){
 
 
-salvar.onclick=function(){
+
+salvarBtn.onclick=function(){
+
 
 
 const descricao =
@@ -843,45 +1031,83 @@ document.getElementById(
 
 
 
+const categoria =
+document.getElementById(
+"categoria"
+).value ||
+"Outros";
+
+
+
+
 
 if(!descricao || !valor){
 
+
 alert(
-"Preencha os dados"
+"Preencha todos os campos"
 );
 
+
 return;
+
 
 }
 
 
 
-const item={
+
+
+
+const movimento = {
+
 
 id:id(),
 
+
 descricao,
+
 
 valor,
 
-data:new Date(),
 
-tipo
+categoria,
+
+
+tipo,
+
+
+data:new Date()
+
 
 };
 
 
 
 
+
+
+
 if(tipo==="receita"){
 
-DB.receitas.push(item);
+
+DB.receitas.push(
+movimento
+);
+
 
 }else{
 
-DB.despesas.push(item);
+
+DB.despesas.push(
+movimento
+);
+
 
 }
+
+
+
 
 
 
@@ -889,24 +1115,43 @@ salvar();
 
 
 
+
 renderFinanceiro();
+
+
 
 
 
 };
 
 
-}
-
-
 
 }
 
 
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+/* ===============================
+LISTA FINANCEIRA
+================================ */
 
 
 
 function renderListaFinanceiro(){
+
 
 
 const lista =
@@ -916,11 +1161,14 @@ document.getElementById(
 
 
 
+
 if(!lista)return;
 
 
 
-let html="";
+
+
+let html = "";
 
 
 
@@ -931,7 +1179,9 @@ DB.receitas.forEach(item=>{
 
 html += `
 
+
 <div class="item">
+
 
 <div>
 
@@ -940,7 +1190,16 @@ ${item.descricao}
 </strong>
 
 
-<br>
+<small>
+
+${item.categoria}
+
+</small>
+
+
+</div>
+
+
 
 <span class="receita">
 
@@ -948,8 +1207,13 @@ ${item.descricao}
 
 </span>
 
-</div>
 
+
+<button onclick="removerLancamento(${item.id})">
+
+Excluir
+
+</button>
 
 
 </div>
@@ -958,8 +1222,8 @@ ${item.descricao}
 `;
 
 
-
 });
+
 
 
 
@@ -972,7 +1236,9 @@ DB.despesas.forEach(item=>{
 
 html += `
 
+
 <div class="item">
+
 
 <div>
 
@@ -981,7 +1247,15 @@ ${item.descricao}
 </strong>
 
 
-<br>
+<small>
+
+${item.categoria}
+
+</small>
+
+
+</div>
+
 
 
 <span class="despesa">
@@ -991,10 +1265,16 @@ ${item.descricao}
 </span>
 
 
-</div>
+
+<button onclick="removerLancamento(${item.id})">
+
+Excluir
+
+</button>
 
 
 </div>
+
 
 `;
 
@@ -1006,41 +1286,104 @@ ${item.descricao}
 
 
 
+
 if(html===""){
 
-html=`
 
-<p class="vazio">
+
+html = `
+
+
+<div class="vazio">
 
 Nenhum lançamento cadastrado.
 
-</p>
+</div>
+
 
 `;
 
-}
-
-
-
-lista.innerHTML=html;
-
 
 
 }
 
+
+
+
+lista.innerHTML =
+html;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ===============================
+ATUALIZAÇÃO AUTOMÁTICA
+================================ */
+
+
+
+function atualizarTudo(){
+
+
+salvar();
+
+
+renderDashboard();
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ===============================
+EXPORTAR
+================================ */
+
+
+
+window.removerLancamento =
+removerLancamento;
+
+
+
+window.moeda =
+moeda;
+
+
+
+window.atualizarTudo =
+atualizarTudo;
 /* =====================================
-   AUREA
-   MAIN.JS
-   PARTE 3/5
+AUREA
+MAIN.JS
+PARTE 3/4
 
-   INVESTIMENTOS + LIMITES
+INVESTIMENTOS + LIMITES + DESEJOS
 ===================================== */
+
+
 
 
 
 /* ===============================
 INVESTIMENTOS
 ================================ */
+
 
 
 function renderInvestimentos(){
@@ -1062,14 +1405,17 @@ if(novo){
 
 novo.onclick=function(){
 
+
 mostrar(
 "formInvestimento"
 );
+
 
 };
 
 
 }
+
 
 
 
@@ -1082,6 +1428,7 @@ document.getElementById(
 
 
 if(salvarInvest){
+
 
 
 salvarInvest.onclick=function(){
@@ -1104,15 +1451,24 @@ document.getElementById(
 
 
 
+
+
+
 if(!nome || !valor){
+
 
 alert(
 "Preencha os dados do investimento"
 );
 
+
 return;
 
+
 }
+
+
+
 
 
 
@@ -1126,12 +1482,15 @@ valor,
 
 data:new Date()
 
+
 });
 
 
 
-salvar();
 
+
+
+salvar();
 
 
 renderInvestimentos();
@@ -1141,17 +1500,24 @@ renderInvestimentos();
 };
 
 
+
+}
+
+
+
+
 }
 
 
 
-}
+
 
 
 
 
 
 function renderListaInvestimentos(){
+
 
 
 const lista =
@@ -1161,7 +1527,9 @@ document.getElementById(
 
 
 
+
 if(!lista)return;
+
 
 
 
@@ -1169,20 +1537,26 @@ if(!lista)return;
 if(DB.investimentos.length===0){
 
 
-lista.innerHTML=`
 
-<p class="vazio">
+lista.innerHTML = `
+
+
+<div class="vazio">
 
 Nenhum investimento cadastrado.
 
-</p>
+</div>
+
 
 `;
+
+
 
 return;
 
 
 }
+
 
 
 
@@ -1193,6 +1567,7 @@ DB.investimentos.map(item=>{
 
 
 return `
+
 
 <div class="item">
 
@@ -1207,7 +1582,18 @@ ${item.nome}
 </strong>
 
 
-<br>
+
+<p>
+
+${dataAtual()}
+
+</p>
+
+
+
+</div>
+
+
 
 
 <span class="investimento">
@@ -1217,7 +1603,14 @@ ${moeda(item.valor)}
 </span>
 
 
-</div>
+
+
+<button onclick="removerInvestimento(${item.id})">
+
+Excluir
+
+</button>
+
 
 
 </div>
@@ -1226,11 +1619,16 @@ ${moeda(item.valor)}
 `;
 
 
+
 }).join("");
 
 
 
 }
+
+
+
+
 
 
 
@@ -1251,18 +1649,22 @@ renderListaLimites();
 
 
 
-const salvarLimite =
+
+
+const salvarBtn =
 document.getElementById(
 "salvarLimite"
 );
 
 
 
-if(salvarLimite){
+
+
+if(salvarBtn){
 
 
 
-salvarLimite.onclick=function(){
+salvarBtn.onclick=function(){
 
 
 
@@ -1283,27 +1685,43 @@ document.getElementById(
 
 
 
+
 if(!categoria || !valor){
+
+
 
 alert(
 "Informe categoria e valor"
 );
 
+
+
 return;
+
 
 }
 
 
 
+
+
+
 DB.limites.push({
+
 
 id:id(),
 
+
 categoria,
+
 
 valor
 
+
 });
+
+
+
 
 
 
@@ -1323,7 +1741,12 @@ renderLimites();
 
 
 
+
+
 }
+
+
+
 
 
 
@@ -1334,31 +1757,32 @@ function gastoCategoria(categoria){
 
 
 
-let total=0;
+return DB.despesas.reduce(
 
-
-
-DB.despesas.forEach(item=>{
+(total,item)=>{
 
 
 if(item.categoria===categoria){
 
 
-total += Number(item.valor);
+return total +
+Number(item.valor);
 
 
 }
-
-
-});
-
 
 
 return total;
 
 
+},0);
+
+
 
 }
+
+
+
 
 
 
@@ -1368,10 +1792,13 @@ return total;
 function renderListaLimites(){
 
 
+
 const lista =
 document.getElementById(
 "listaLimites"
 );
+
+
 
 
 
@@ -1380,23 +1807,32 @@ if(!lista)return;
 
 
 
+
+
 if(DB.limites.length===0){
 
 
-lista.innerHTML=`
 
-<p class="vazio">
+lista.innerHTML = `
+
+
+<div class="vazio">
 
 Nenhum limite criado.
 
-</p>
+</div>
+
 
 `;
+
+
 
 return;
 
 
 }
+
+
 
 
 
@@ -1416,7 +1852,7 @@ item.categoria
 
 
 const percentual =
-(item.valor>0)
+item.valor>0
 ?
 (gasto/item.valor)*100
 :
@@ -1424,10 +1860,14 @@ const percentual =
 
 
 
+
+
 return `
 
 
+
 <div class="item">
+
 
 
 <div>
@@ -1440,22 +1880,8 @@ ${item.categoria}
 </strong>
 
 
-<br>
-
-
-<span>
-
-${moeda(gasto)}
-
-de
-
-${moeda(item.valor)}
-
-</span>
-
 
 <div class="progress">
-
 
 <span style="width:${Math.min(percentual,100)}%">
 
@@ -1465,14 +1891,47 @@ ${moeda(item.valor)}
 </div>
 
 
-</div>
+
+<small>
+
+${moeda(gasto)}
+de
+${moeda(item.valor)}
+
+</small>
 
 
 
 </div>
+
+
+
+
+
+<span>
+
+${percentual.toFixed(0)}%
+
+</span>
+
+
+
+
+<button onclick="removerLimite(${item.id})">
+
+Excluir
+
+</button>
+
+
+
+
+</div>
+
 
 
 `;
+
 
 
 
@@ -1481,66 +1940,46 @@ ${moeda(item.valor)}
 
 
 }
-/* =====================================
-AUREA
-MAIN.JS
-PARTE 4/5
 
-DESEJOS + EXCLUSÕES + UTILIDADES
-===================================== */
+
+
+
+
+
 
 
 
 /* ===============================
-DESEJOS
+DESEJOS / METAS
 ================================ */
 
 
+
 function renderDesejos(){
+
 
 
 renderListaDesejos();
 
 
 
-const novo =
-document.getElementById(
-"novoDesejo"
-);
 
 
 
-if(novo){
-
-
-novo.onclick=function(){
-
-
-mostrar(
-"formDesejo"
-);
-
-
-};
-
-
-}
-
-
-
-
-
-const salvarDesejo =
+const salvar =
 document.getElementById(
 "salvarDesejo"
 );
 
 
 
-if(salvarDesejo){
 
 
-salvarDesejo.onclick=function(){
+if(salvar){
+
+
+
+salvar.onclick=function(){
 
 
 
@@ -1548,6 +1987,7 @@ const nome =
 document.getElementById(
 "nomeDesejo"
 ).value;
+
 
 
 
@@ -1560,6 +2000,8 @@ document.getElementById(
 
 
 
+
+
 const prazo =
 document.getElementById(
 "prazoDesejo"
@@ -1567,12 +2009,18 @@ document.getElementById(
 
 
 
+
+
+
+
 if(!nome || !valor){
 
 
+
 alert(
-"Preencha os dados do desejo"
+"Preencha os dados da meta"
 );
+
 
 
 return;
@@ -1583,22 +2031,34 @@ return;
 
 
 
+
+
+
 DB.desejos.push({
 
 
 id:id(),
 
+
 nome,
+
 
 valor,
 
+
 prazo,
 
-criado:new Date()
 
+guardado:0,
+
+
+data:new Date()
 
 
 });
+
+
+
 
 
 
@@ -1615,11 +2075,17 @@ renderDesejos();
 
 
 
+
+}
+
+
+
+
 }
 
 
 
-}
+
 
 
 
@@ -1636,22 +2102,32 @@ document.getElementById(
 
 
 
+
+
 if(!lista)return;
+
+
+
+
 
 
 
 if(DB.desejos.length===0){
 
 
-lista.innerHTML=`
 
-<p class="vazio">
+lista.innerHTML = `
 
-Nenhuma meta criada ainda.
 
-</p>
+<div class="vazio">
+
+Nenhuma meta criada.
+
+</div>
+
 
 `;
+
 
 
 return;
@@ -1663,43 +2139,56 @@ return;
 
 
 
+
+
 lista.innerHTML =
+
 
 
 DB.desejos.map(item=>{
 
 
+
 return `
+
+
 
 <div class="item">
 
 
 <div>
 
+
 <strong>
+
 ${item.nome}
+
 </strong>
+
 
 
 <p>
 
-Meta:
+Objetivo:
 ${moeda(item.valor)}
 
 </p>
 
 
-${item.prazo ?
-`
+
 <small>
-Prazo: ${item.prazo}
-</small>
-`
+
+${item.prazo ?
+"Prazo: "+item.prazo
 :
 ""}
 
+</small>
+
 
 </div>
+
+
 
 
 
@@ -1710,10 +2199,13 @@ Excluir
 </button>
 
 
+
 </div>
 
 
 `;
+
+
 
 
 }).join("");
@@ -1726,77 +2218,13 @@ Excluir
 
 
 
-function removerDesejo(idDesejo){
-
-
-DB.desejos =
-
-DB.desejos.filter(
-
-item=>item.id !== idDesejo
-
-);
-
-
-
-salvar();
-
-
-
-renderDesejos();
-
-
-
-}
-
-
-
-
 
 
 
 
 /* ===============================
-EXCLUSÃO FINANCEIRA
+EXCLUSÕES
 ================================ */
-
-
-
-function removerLancamento(idLancamento){
-
-
-
-DB.receitas =
-
-DB.receitas.filter(
-
-item=>item.id !== idLancamento
-
-);
-
-
-
-DB.despesas =
-
-DB.despesas.filter(
-
-item=>item.id !== idLancamento
-
-);
-
-
-
-salvar();
-
-
-
-renderFinanceiro();
-
-
-
-}
-
-
 
 
 
@@ -1808,7 +2236,8 @@ DB.investimentos =
 
 DB.investimentos.filter(
 
-item=>item.id !== idInvestimento
+item =>
+item.id !== idInvestimento
 
 );
 
@@ -1817,12 +2246,11 @@ item=>item.id !== idInvestimento
 salvar();
 
 
-
 renderInvestimentos();
 
 
-
 }
+
 
 
 
@@ -1836,20 +2264,19 @@ DB.limites =
 
 DB.limites.filter(
 
-item=>item.id !== idLimite
+item =>
+item.id !== idLimite
 
 );
 
 
 
 salvar();
-
 
 
 renderLimites();
 
 
-
 }
 
 
@@ -1857,120 +2284,59 @@ renderLimites();
 
 
 
-
-/* ===============================
-ATUALIZA DASHBOARD
-================================ */
+function removerDesejo(idDesejo){
 
 
 
-function atualizarTudo(){
+DB.desejos =
 
+DB.desejos.filter(
 
-salvar();
+item =>
+item.id !== idDesejo
 
-
-renderDashboard();
-
-
-}
-
-
-
-
-
-
-/* ===============================
-MÊS SELECIONADO
-================================ */
-
-
-
-const seletorMes =
-document.getElementById(
-"mesSelecionado"
 );
 
 
 
-if(seletorMes){
-
-
-seletorMes.onchange=function(){
-
-
-DB.config.mes =
-this.selectedIndex;
-
-
-
 salvar();
 
 
-
-};
-
+renderDesejos();
 
 
 }
+
+
+
+
+
+
+/* ===============================
+EXPORTAR FUNÇÕES
+================================ */
+
+
+
+window.removerInvestimento =
+removerInvestimento;
+
+
+
+window.removerLimite =
+removerLimite;
+
+
+
+window.removerDesejo =
+removerDesejo;
 /* =====================================
 AUREA
 MAIN.JS
-PARTE 5/5
+PARTE 4/4
 
-FINALIZAÇÃO + GRÁFICOS + ALERTAS
+GRÁFICOS + ALERTAS + FINALIZAÇÃO
 ===================================== */
-
-
-
-/* ===============================
-FORMATAÇÃO DE DATAS
-================================ */
-
-
-function dataFormatada(data){
-
-
-return new Date(data)
-.toLocaleDateString(
-"pt-BR"
-);
-
-
-}
-
-
-
-
-
-
-/* ===============================
-CÁLCULO DE PERCENTUAL
-================================ */
-
-
-
-function percentual(valor,total){
-
-
-if(!total || total===0){
-
-return 0;
-
-}
-
-
-return (
-
-(valor / total) * 100
-
-).toFixed(0);
-
-
-}
-
-
-
 
 
 
@@ -1985,6 +2351,7 @@ ALERTAS FINANCEIROS
 function gerarAlertas(){
 
 
+
 const alerta =
 document.getElementById(
 "alertas"
@@ -1992,11 +2359,18 @@ document.getElementById(
 
 
 
+
+
 if(!alerta)return;
 
 
 
-let mensagens=[];
+
+
+
+let mensagens = [];
+
+
 
 
 
@@ -2005,12 +2379,22 @@ saldo();
 
 
 
+
+
+
 if(saldoAtual < 0){
+
 
 
 mensagens.push(`
 
+
+<div class="item">
+
 ⚠️ Seu saldo está negativo.
+
+</div>
+
 
 `);
 
@@ -2019,22 +2403,46 @@ mensagens.push(`
 
 
 
-const total =
+
+
+
+const receita =
 totalReceitas();
 
 
 
-const gastos =
+const despesas =
 totalDespesas();
 
 
 
-if(total > 0 && gastos > total*0.8){
+
+
+
+if(receita > 0){
+
+
+
+const uso =
+(despesas / receita) * 100;
+
+
+
+
+
+if(uso >= 80){
+
 
 
 mensagens.push(`
 
-⚠️ Você já utilizou mais de 80% da sua renda.
+
+<div class="item">
+
+⚠️ Você já utilizou ${uso.toFixed(0)}% da sua renda.
+
+</div>
+
 
 `);
 
@@ -2043,40 +2451,71 @@ mensagens.push(`
 
 
 
-if(DB.desejos.length>0){
+}
+
+
+
+
+
+
+
+if(DB.desejos.length > 0){
+
 
 
 mensagens.push(`
+
+
+<div class="item">
 
 ✨ Você possui ${DB.desejos.length} metas financeiras.
 
+</div>
+
+
 `);
 
 
 }
+
+
+
 
 
 
 if(mensagens.length===0){
 
 
+
 mensagens.push(`
 
+
+<div class="item">
+
 ✅ Sua organização financeira está em dia.
+
+</div>
+
 
 `);
 
 
+
+}
+
+
+
+
+
+
+alerta.innerHTML =
+mensagens.join("");
+
+
+
 }
 
 
-
-
-alerta.innerHTML = mensagens.join("");
-
-
-
-}
 
 
 
@@ -2085,7 +2524,7 @@ alerta.innerHTML = mensagens.join("");
 
 
 /* ===============================
-GRÁFICO DE CATEGORIAS
+CATEGORIAS DE GASTOS
 ================================ */
 
 
@@ -2101,32 +2540,48 @@ document.getElementById(
 
 
 
+
+
 if(!grafico)return;
 
 
 
-let categorias={};
+
+
+
+let categorias = {};
+
+
+
 
 
 
 DB.despesas.forEach(item=>{
 
 
-let cat =
+
+const categoria =
 item.categoria ||
 "Outros";
 
 
 
-if(!categorias[cat]){
 
-categorias[cat]=0;
+
+if(!categorias[categoria]){
+
+
+categorias[categoria]=0;
+
 
 }
 
 
 
-categorias[cat]+=Number(item.valor);
+
+
+categorias[categoria] +=
+Number(item.valor);
 
 
 
@@ -2134,18 +2589,26 @@ categorias[cat]+=Number(item.valor);
 
 
 
+
+
+
+
 if(Object.keys(categorias).length===0){
 
 
-grafico.innerHTML=`
 
-<p class="vazio">
+grafico.innerHTML = `
+
+
+<div class="vazio">
 
 Nenhuma despesa cadastrada.
 
-</p>
+</div>
+
 
 `;
+
 
 
 return;
@@ -2156,7 +2619,11 @@ return;
 
 
 
+
+
+
 grafico.innerHTML =
+
 
 
 Object.entries(categorias)
@@ -2164,34 +2631,71 @@ Object.entries(categorias)
 .map(([nome,valor])=>{
 
 
+
+const percentual =
+
+(totalDespesas()>0)
+
+?
+
+(valor / totalDespesas()) * 100
+
+:
+
+0;
+
+
+
+
+
 return `
 
 
-<p>
 
-
-<span>
-
-${nome}
-
-</span>
+<div class="item">
 
 
 <strong>
 
-${moeda(valor)}
+${nome}
 
 </strong>
 
 
-</p>
+
+<div>
+
+
+${moeda(valor)}
+
+
+
+
+
+<div class="progress">
+
+
+<span style="width:${percentual}%">
+
+</span>
+
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
 
 
 `;
 
 
-})
 
+})
 
 .join("");
 
@@ -2204,8 +2708,102 @@ ${moeda(valor)}
 
 
 
+
+
+
 /* ===============================
-INICIALIZAÇÃO FINAL
+SELETOR DE MÊS
+================================ */
+
+
+
+const seletorMes =
+
+document.getElementById(
+"mesSelecionado"
+);
+
+
+
+
+
+
+if(seletorMes){
+
+
+
+seletorMes.onchange=function(){
+
+
+
+DB.config.mes =
+this.selectedIndex;
+
+
+
+salvar();
+
+
+
+
+carregarPagina(
+"dashboard"
+);
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ===============================
+ATUALIZAÇÃO GERAL
+================================ */
+
+
+
+function atualizarTudo(){
+
+
+
+salvar();
+
+
+
+renderDashboard();
+
+
+
+gerarAlertas();
+
+
+
+gerarCategorias();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ===============================
+INICIALIZAÇÃO
 ================================ */
 
 
@@ -2239,15 +2837,12 @@ gerarCategorias();
 
 
 
+
+
+
 /* ===============================
-EXPOR FUNÇÕES
-PARA HTML
+EXPORTAR
 ================================ */
-
-
-
-window.removerDesejo =
-removerDesejo;
 
 
 
@@ -2266,5 +2861,35 @@ removerLimite;
 
 
 
-window.moeda =
-moeda;
+window.removerDesejo =
+removerDesejo;
+
+
+
+window.atualizarTudo =
+atualizarTudo;
+
+
+
+window.renderDashboard =
+renderDashboard;
+
+
+
+window.renderFinanceiro =
+renderFinanceiro;
+
+
+
+window.renderInvestimentos =
+renderInvestimentos;
+
+
+
+window.renderLimites =
+renderLimites;
+
+
+
+window.renderDesejos =
+renderDesejos;
