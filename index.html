@@ -1,60 +1,311 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
 <title>AUREA | Controle Financeiro</title>
+
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
 <link rel="stylesheet" href="styles/global.css">
+
+
 </head>
+
+
 <body>
+
+
 <div class="app">
+
+
+
+<!-- SIDEBAR -->
+
 <aside class="sidebar">
-<div class="logo">
-<h2>AUREA</h2>
-<p>Sua vida financeira organizada</p>
-</div>
-<nav>
-<button class="menu active" data-page="dashboard"><span>H</span>Dashboard</button>
-<button class="menu" data-page="financeiro"><span>$</span>Meu Financeiro</button>
-<button class="menu" data-page="investimentos"><span>I</span>Investimentos</button>
-<button class="menu" data-page="limites"><span>L</span>Limites</button>
-<button class="menu" data-page="desejos"><span>D</span>Desejos</button>
-<button class="menu" data-page="saude"><span>S</span>Saude Financeira</button>
-</nav>
-<div class="sidebar-footer">
-<p>Controle inteligente</p>
-<strong>AUREA Premium</strong>
-</div>
-</aside>
-<main class="main">
-<header class="topbar">
+
+
 <div>
-<h1 id="tituloPagina">Dashboard</h1>
-<p id="subtituloPagina">Acompanhe sua evolucao financeira</p>
+
+
+<div class="brand">
+
+
+<h1>
+AUREA
+</h1>
+
+
+<p>
+Sua vida financeira organizada
+</p>
+
+
 </div>
-<div class="header-actions">
+
+
+
+
+
+<nav>
+
+
+<button class="menu active" data-page="dashboard">
+
+<span>
+⌂
+</span>
+
+Dashboard
+
+</button>
+
+
+
+
+<button class="menu" data-page="financeiro">
+
+<span>
+💳
+</span>
+
+Meu Financeiro
+
+</button>
+
+
+
+
+<button class="menu" data-page="investimentos">
+
+<span>
+📈
+</span>
+
+Investimentos
+
+</button>
+
+
+
+
+<button class="menu" data-page="limites">
+
+<span>
+🎯
+</span>
+
+Limites
+
+</button>
+
+
+
+
+<button class="menu" data-page="desejos">
+
+<span>
+✨
+</span>
+
+Desejos
+
+</button>
+
+
+
+</nav>
+
+
+</div>
+
+
+
+
+
+<div class="profile-card">
+
+
+<p>
+Plano
+</p>
+
+
+<strong>
+AUREA Premium
+</strong>
+
+
+</div>
+
+
+
+</aside>
+
+
+
+
+
+
+
+<!-- CONTEÚDO -->
+
+<main class="content">
+
+
+
+<header class="topbar">
+
+
+<div>
+
+
+<h2 id="tituloPagina">
+Dashboard
+</h2>
+
+
+<p id="subtituloPagina">
+
+Acompanhe sua evolução financeira
+
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="actions">
+
+
 <select id="mesSelecionado">
-<option>Janeiro</option>
-<option>Fevereiro</option>
-<option>Marco</option>
-<option>Abril</option>
-<option>Maio</option>
-<option>Junho</option>
-<option>Julho</option>
-<option selected>Agosto</option>
-<option>Setembro</option>
-<option>Outubro</option>
-<option>Novembro</option>
-<option>Dezembro</option>
+
+
+<option>
+Janeiro 2026
+</option>
+
+
+<option>
+Fevereiro 2026
+</option>
+
+
+<option>
+Março 2026
+</option>
+
+
+<option>
+Abril 2026
+</option>
+
+
+<option selected>
+Maio 2026
+</option>
+
+
+<option>
+Junho 2026
+</option>
+
+
+<option>
+Julho 2026
+</option>
+
+
+<option>
+Agosto 2026
+</option>
+
+
+<option>
+Setembro 2026
+</option>
+
+
+<option>
+Outubro 2026
+</option>
+
+
+<option>
+Novembro 2026
+</option>
+
+
+<option>
+Dezembro 2026
+</option>
+
+
+
 </select>
-<button class="notification">Alertas</button>
+
+
+
+
+
+<button class="bell">
+
+🔔
+
+</button>
+
+
 </div>
+
+
+
 </header>
-<section id="conteudo"></section>
+
+
+
+
+
+
+
+<section id="conteudo">
+
+
+</section>
+
+
+
+
+
+
 </main>
+
+
+
 </div>
+
+
+
+
+
 <script src="main.js"></script>
+
+
 </body>
+
+
 </html>
