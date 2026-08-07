@@ -1,103 +1,97 @@
 /* =====================================
-AUREA - GLOBAL CSS
-PARTE 1/3
+   AUREA
+   MAIN.JS
+   PARTE 1/5
 ===================================== */
 
 
-*{
+/* ===============================
+BANCO DE DADOS
+================================ */
 
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Inter',sans-serif;
+
+const DB = {
+
+receitas: [],
+
+despesas: [],
+
+investimentos: [],
+
+limites: [],
+
+desejos: [],
+
+config: {
+
+mes: new Date().getMonth(),
+
+ano: new Date().getFullYear()
+
+}
+
+};
+
+
+
+
+
+/* ===============================
+LOCAL STORAGE
+================================ */
+
+
+function salvar(){
+
+localStorage.setItem(
+"AUREA_DB",
+JSON.stringify(DB)
+);
 
 }
 
 
 
-:root{
+function carregar(){
 
---primary:#2563eb;
+const dados =
+localStorage.getItem("AUREA_DB");
 
---primary-dark:#1d4ed8;
 
---background:#f8fafc;
+if(dados){
 
---card:#ffffff;
+Object.assign(
+DB,
+JSON.parse(dados)
+);
 
---text:#1e293b;
-
---muted:#64748b;
-
---border:#e2e8f0;
-
---success:#16a34a;
-
---danger:#dc2626;
-
---gold:#c9a227;
+}
 
 }
 
 
 
+carregar();
 
 
-body{
 
-background:var(--background);
 
-color:var(--text);
 
-min-height:100vh;
+/* ===============================
+AUXILIARES
+================================ */
 
+
+function moeda(valor){
+
+return Number(valor || 0)
+.toLocaleString(
+"pt-BR",
+{
+style:"currency",
+currency:"BRL"
 }
-
-
-
-
-
-/* ==========================
-APP
-========================== */
-
-
-.app{
-
-display:flex;
-
-min-height:100vh;
-
-}
-
-
-
-
-
-
-
-/* ==========================
-SIDEBAR
-========================== */
-
-
-.sidebar{
-
-width:270px;
-
-background:#111827;
-
-padding:30px 22px;
-
-display:flex;
-
-flex-direction:column;
-
-color:white;
-
-position:fixed;
-
-height:100vh;
+);
 
 }
 
@@ -105,33 +99,9 @@ height:100vh;
 
 
 
-.logo{
+function id(){
 
-margin-bottom:45px;
-
-}
-
-
-
-.logo h2{
-
-font-size:28px;
-
-font-weight:700;
-
-letter-spacing:-1px;
-
-}
-
-
-
-.logo p{
-
-font-size:13px;
-
-color:#94a3b8;
-
-margin-top:8px;
+return Date.now();
 
 }
 
@@ -139,13 +109,17 @@ margin-top:8px;
 
 
 
-.sidebar nav{
+function mostrar(id){
 
-display:flex;
+const elemento =
+document.getElementById(id);
 
-flex-direction:column;
 
-gap:10px;
+if(elemento){
+
+elemento.style.display="block";
+
+}
 
 }
 
@@ -153,31 +127,17 @@ gap:10px;
 
 
 
-.menu{
+function esconder(id){
 
-border:none;
+const elemento =
+document.getElementById(id);
 
-background:transparent;
 
-color:#cbd5e1;
+if(elemento){
 
-padding:15px 18px;
+elemento.style.display="none";
 
-border-radius:14px;
-
-cursor:pointer;
-
-font-size:15px;
-
-display:flex;
-
-align-items:center;
-
-gap:12px;
-
-transition:.25s;
-
-text-align:left;
+}
 
 }
 
@@ -185,86 +145,462 @@ text-align:left;
 
 
 
-.menu span{
+/* ===============================
+NAVEGAÇÃO
+================================ */
 
-font-size:20px;
+
+const conteudo =
+document.getElementById("conteudo");
+
+
+
+const paginas = {
+
+
+dashboard:`
+
+<div class="containerTela">
+
+<div class="cards">
+
+<div class="card">
+
+<h3>Receitas</h3>
+
+<p id="dashReceitas">
+R$ 0,00
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>Despesas</h3>
+
+<p id="dashDespesas">
+R$ 0,00
+</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Saldo Atual</h3>
+
+<p id="dashSaldo">
+R$ 0,00
+</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Investimentos</h3>
+
+<p id="dashInvestimentos">
+R$ 0,00
+</p>
+
+</div>
+
+
+</div>
+
+
+
+<div class="painel">
+
+<h3>
+Resumo Financeiro
+</h3>
+
+
+<div id="resumoFinanceiro">
+
+</div>
+
+
+</div>
+
+
+</div>
+
+`,
+
+
+
+
+
+financeiro:`
+
+<div class="containerTela">
+
+
+<div class="painel">
+
+
+<h3>
+Meu Financeiro
+</h3>
+
+
+<button id="novoLancamento">
++ Novo lançamento
+</button>
+
+
+<div id="formLancamento"
+style="display:none">
+
+
+<input 
+id="descricao"
+placeholder="Descrição">
+
+
+<input
+id="valor"
+type="number"
+placeholder="Valor">
+
+
+<select id="tipo">
+
+
+<option value="receita">
+Receita
+</option>
+
+
+<option value="despesa">
+Despesa
+</option>
+
+
+</select>
+
+
+
+<button id="salvarLancamento">
+
+Salvar
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="painel">
+
+
+<h3>
+Histórico
+</h3>
+
+
+<div id="listaFinanceiro">
+
+</div>
+
+
+</div>
+
+
+</div>
+
+`,
+
+
+
+
+
+investimentos:`
+
+<div class="containerTela">
+
+
+<div class="painel">
+
+<h3>
+Meus Investimentos
+</h3>
+
+
+<button id="novoInvestimento">
+
++ Novo investimento
+
+</button>
+
+
+<div id="formInvestimento"
+style="display:none">
+
+
+<input id="nomeInvestimento"
+placeholder="Nome">
+
+
+<input 
+id="valorInvestimento"
+type="number"
+placeholder="Valor">
+
+
+<button id="salvarInvestimento">
+
+Salvar
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+<div class="painel">
+
+<h3>
+Carteira
+
+</h3>
+
+
+<div id="listaInvestimentos">
+
+</div>
+
+
+</div>
+
+
+</div>
+
+`,
+
+
+
+
+
+limites:`
+
+<div class="containerTela">
+
+
+<div class="painel">
+
+
+<h3>
+Limites de gastos
+</h3>
+
+
+<input
+id="categoriaLimite"
+placeholder="Categoria">
+
+
+<input
+id="valorLimite"
+type="number"
+placeholder="Limite">
+
+
+<button id="salvarLimite">
+
+Salvar limite
+
+</button>
+
+
+</div>
+
+
+<div class="painel">
+
+
+<div id="listaLimites">
+
+</div>
+
+
+</div>
+
+
+</div>
+
+`,
+
+
+
+
+
+desejos:`
+
+<div class="containerTela">
+
+
+<div class="painel">
+
+
+<h3>
+Metas e desejos
+
+</h3>
+
+
+<input
+id="nomeDesejo"
+placeholder="Objetivo">
+
+
+<input
+id="valorDesejo"
+type="number"
+placeholder="Valor da meta">
+
+
+<button id="salvarDesejo">
+
+Criar meta
+
+</button>
+
+
+</div>
+
+
+
+<div class="painel">
+
+
+<div id="listaDesejos">
+
+</div>
+
+
+</div>
+
+
+</div>
+
+`
+
+
+};
+
+
+
+
+
+function carregarPagina(nome){
+
+
+conteudo.innerHTML =
+paginas[nome];
+
+
+if(nome==="dashboard")
+renderDashboard();
+
+
+if(nome==="financeiro")
+renderFinanceiro();
+
+
+if(nome==="investimentos")
+renderInvestimentos();
+
+
+if(nome==="limites")
+renderLimites();
+
+
+if(nome==="desejos")
+renderDesejos();
+
 
 }
 
 
 
-.menu:hover{
-
-background:#1f2937;
-
-color:white;
-
-}
+carregarPagina("dashboard");
 
 
 
 
 
-.menu.active{
-
-background:#2563eb;
-
-color:white;
-
-}
+document
+.querySelectorAll(".menu")
+.forEach(botao=>{
 
 
+botao.onclick=function(){
 
 
-
-.sidebar-footer{
-
-margin-top:auto;
-
-background:#1f2937;
-
-padding:18px;
-
-border-radius:18px;
-
-}
+document
+.querySelectorAll(".menu")
+.forEach(x=>
+x.classList.remove("active")
+);
 
 
 
-.sidebar-footer p{
-
-font-size:12px;
-
-color:#94a3b8;
-
-}
+botao.classList.add("active");
 
 
 
-.sidebar-footer strong{
-
-font-size:18px;
-
-}
+carregarPagina(
+botao.dataset.page
+);
 
 
 
+document
+.getElementById("tituloPagina")
+.innerHTML =
+botao.innerText;
+
+
+};
+
+
+});
+/* =====================================
+   AUREA
+   MAIN.JS
+   PARTE 2/5
+
+   DASHBOARD + FINANCEIRO
+===================================== */
 
 
 
+/* ===============================
+CÁLCULOS
+================================ */
 
-/* ==========================
-MAIN
-========================== */
 
+function totalReceitas(){
 
-.main{
-
-margin-left:270px;
-
-padding:35px;
-
-width:calc(100% - 270px);
+return DB.receitas.reduce(
+(total,item)=>
+total + Number(item.valor),
+0
+);
 
 }
 
@@ -272,35 +608,13 @@ width:calc(100% - 270px);
 
 
 
-.topbar{
+function totalDespesas(){
 
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-margin-bottom:35px;
-
-}
-
-
-
-.topbar h1{
-
-font-size:34px;
-
-letter-spacing:-1px;
-
-}
-
-
-
-#subtituloPagina{
-
-color:var(--muted);
-
-margin-top:6px;
+return DB.despesas.reduce(
+(total,item)=>
+total + Number(item.valor),
+0
+);
 
 }
 
@@ -308,31 +622,13 @@ margin-top:6px;
 
 
 
-.header-actions{
+function totalInvestimentos(){
 
-display:flex;
-
-align-items:center;
-
-gap:15px;
-
-}
-
-
-
-select{
-
-border:1px solid var(--border);
-
-background:white;
-
-padding:12px 18px;
-
-border-radius:14px;
-
-font-size:14px;
-
-cursor:pointer;
+return DB.investimentos.reduce(
+(total,item)=>
+total + Number(item.valor),
+0
+);
 
 }
 
@@ -340,155 +636,514 @@ cursor:pointer;
 
 
 
-.notification{
+function saldo(){
 
-border:none;
+return totalReceitas()
+-
+totalDespesas();
 
-background:white;
+}
 
-width:45px;
 
-height:45px;
 
-border-radius:50%;
 
-cursor:pointer;
 
-font-size:20px;
 
-box-shadow:0 5px 15px rgba(0,0,0,.08);
+
+/* ===============================
+DASHBOARD
+================================ */
+
+
+function renderDashboard(){
+
+
+document.getElementById(
+"dashReceitas"
+).innerHTML =
+moeda(totalReceitas());
+
+
+
+document.getElementById(
+"dashDespesas"
+).innerHTML =
+moeda(totalDespesas());
+
+
+
+document.getElementById(
+"dashSaldo"
+).innerHTML =
+moeda(saldo());
+
+
+
+document.getElementById(
+"dashInvestimentos"
+).innerHTML =
+moeda(totalInvestimentos());
+
+
+
+
+const resumo =
+document.getElementById(
+"resumoFinanceiro"
+);
+
+
+
+if(resumo){
+
+
+let mensagem="";
+
+
+
+if(saldo()<0){
+
+
+mensagem=`
+
+<p>
+⚠️ Atenção: suas despesas estão maiores que suas receitas.
+</p>
+
+`;
+
+
+
+}else{
+
+
+mensagem=`
+
+<p>
+✅ Sua organização financeira está positiva.
+</p>
+
+`;
+
+}
+
+
+
+const percentual =
+totalReceitas()>0
+?
+(totalDespesas()/totalReceitas())*100
+:
+0;
+
+
+
+mensagem += `
+
+
+<p>
+
+Você utilizou 
+<strong>
+${percentual.toFixed(0)}%
+</strong>
+
+da sua renda.
+
+</p>
+
+
+`;
+
+
+
+resumo.innerHTML =
+mensagem;
+
+
+}
+
+
+
+}
+
+
+
+
+
+/* ===============================
+FINANCEIRO
+================================ */
+
+
+function renderFinanceiro(){
+
+
+renderListaFinanceiro();
+
+
+const botaoNovo =
+document.getElementById(
+"novoLancamento"
+);
+
+
+
+if(botaoNovo){
+
+
+botaoNovo.onclick=function(){
+
+mostrar(
+"formLancamento"
+);
+
+};
+
+
+}
+
+
+
+
+
+const salvar =
+document.getElementById(
+"salvarLancamento"
+);
+
+
+
+if(salvar){
+
+
+salvar.onclick=function(){
+
+
+const descricao =
+document.getElementById(
+"descricao"
+).value;
+
+
+
+const valor =
+Number(
+document.getElementById(
+"valor"
+).value
+);
+
+
+
+const tipo =
+document.getElementById(
+"tipo"
+).value;
+
+
+
+
+if(!descricao || !valor){
+
+alert(
+"Preencha os dados"
+);
+
+return;
+
+}
+
+
+
+const item={
+
+id:id(),
+
+descricao,
+
+valor,
+
+data:new Date(),
+
+tipo
+
+};
+
+
+
+
+if(tipo==="receita"){
+
+DB.receitas.push(item);
+
+}else{
+
+DB.despesas.push(item);
+
+}
+
+
+
+salvar();
+
+
+
+renderFinanceiro();
+
+
+
+};
+
+
+}
+
+
+
+}
+
+
+
+
+
+function renderListaFinanceiro(){
+
+
+const lista =
+document.getElementById(
+"listaFinanceiro"
+);
+
+
+
+if(!lista)return;
+
+
+
+let html="";
+
+
+
+
+
+DB.receitas.forEach(item=>{
+
+
+html += `
+
+<div class="item">
+
+<div>
+
+<strong>
+${item.descricao}
+</strong>
+
+
+<br>
+
+<span class="receita">
+
++ ${moeda(item.valor)}
+
+</span>
+
+</div>
+
+
+
+</div>
+
+
+`;
+
+
+
+});
+
+
+
+
+
+
+
+DB.despesas.forEach(item=>{
+
+
+html += `
+
+<div class="item">
+
+<div>
+
+<strong>
+${item.descricao}
+</strong>
+
+
+<br>
+
+
+<span class="despesa">
+
+- ${moeda(item.valor)}
+
+</span>
+
+
+</div>
+
+
+</div>
+
+`;
+
+
+
+});
+
+
+
+
+
+if(html===""){
+
+html=`
+
+<p class="vazio">
+
+Nenhum lançamento cadastrado.
+
+</p>
+
+`;
+
+}
+
+
+
+lista.innerHTML=html;
+
+
 
 }
 
 /* =====================================
-AUREA - GLOBAL CSS
-PARTE 2/3
+   AUREA
+   MAIN.JS
+   PARTE 3/5
+
+   INVESTIMENTOS + LIMITES
 ===================================== */
 
 
 
-/* ==========================
-CARDS
-========================== */
+/* ===============================
+INVESTIMENTOS
+================================ */
 
 
-.cards{
+function renderInvestimentos(){
 
-display:grid;
 
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+renderListaInvestimentos();
 
-gap:22px;
 
-margin-bottom:30px;
+
+const novo =
+document.getElementById(
+"novoInvestimento"
+);
+
+
+
+if(novo){
+
+
+novo.onclick=function(){
+
+mostrar(
+"formInvestimento"
+);
+
+};
+
 
 }
 
 
 
 
-.card{
-
-background:var(--card);
-
-border-radius:22px;
-
-padding:25px;
-
-box-shadow:
-
-0 10px 30px rgba(15,23,42,.06);
-
-border:1px solid rgba(226,232,240,.7);
-
-transition:.25s;
-
-}
+const salvarInvest =
+document.getElementById(
+"salvarInvestimento"
+);
 
 
 
-.card:hover{
+if(salvarInvest){
 
-transform:translateY(-4px);
 
-box-shadow:
-
-0 15px 35px rgba(15,23,42,.10);
-
-}
+salvarInvest.onclick=function(){
 
 
 
-.card h3{
+const nome =
+document.getElementById(
+"nomeInvestimento"
+).value;
 
-font-size:14px;
 
-font-weight:500;
 
-color:var(--muted);
+const valor =
+Number(
+document.getElementById(
+"valorInvestimento"
+).value
+);
 
-margin-bottom:15px;
+
+
+if(!nome || !valor){
+
+alert(
+"Preencha os dados do investimento"
+);
+
+return;
 
 }
 
 
 
-.card p{
+DB.investimentos.push({
 
-font-size:30px;
+id:id(),
 
-font-weight:700;
+nome,
 
-letter-spacing:-1px;
+valor,
+
+data:new Date()
+
+});
+
+
+
+salvar();
+
+
+
+renderInvestimentos();
+
+
+
+};
+
 
 }
 
 
-
-
-
-/* destaque */
-
-.card:first-child p{
-
-color:var(--success);
-
-}
-
-
-
-
-
-/* ==========================
-PAINÉIS
-========================== */
-
-
-.painel{
-
-background:white;
-
-border-radius:22px;
-
-padding:28px;
-
-margin-bottom:25px;
-
-box-shadow:
-
-0 10px 30px rgba(15,23,42,.05);
-
-border:1px solid var(--border);
-
-}
-
-
-
-.painel h3{
-
-font-size:18px;
-
-margin-bottom:20px;
 
 }
 
@@ -496,152 +1151,84 @@ margin-bottom:20px;
 
 
 
+function renderListaInvestimentos(){
 
 
-/* ==========================
-ITENS / LISTAS
-========================== */
-
-
-.item{
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-padding:16px 0;
-
-border-bottom:1px solid var(--border);
-
-}
+const lista =
+document.getElementById(
+"listaInvestimentos"
+);
 
 
 
-.item:last-child{
-
-border-bottom:none;
-
-}
+if(!lista)return;
 
 
 
-.item strong{
 
-font-size:15px;
-
-}
+if(DB.investimentos.length===0){
 
 
+lista.innerHTML=`
 
-.item span{
+<p class="vazio">
 
-font-weight:600;
+Nenhum investimento cadastrado.
 
-color:var(--primary);
+</p>
+
+`;
+
+return;
+
 
 }
 
 
 
 
+lista.innerHTML =
 
-/* ==========================
-INPUTS
-========================== */
-
-
-input,
-textarea,
-select{
-
-width:100%;
-
-padding:14px 16px;
-
-border-radius:14px;
-
-border:1px solid var(--border);
-
-background:white;
-
-font-size:14px;
-
-margin-bottom:14px;
-
-outline:none;
-
-transition:.2s;
-
-}
+DB.investimentos.map(item=>{
 
 
+return `
 
-input:focus,
-textarea:focus,
-select:focus{
-
-border-color:var(--primary);
-
-box-shadow:
-
-0 0 0 3px rgba(37,99,235,.12);
-
-}
+<div class="item">
 
 
+<div>
 
 
+<strong>
 
-/* ==========================
-BOTÕES
-========================== */
+${item.nome}
 
-
-button{
-
-font-family:inherit;
-
-}
+</strong>
 
 
-
-#salvarMovimento,
-#salvarInvestimento,
-#salvarLimite,
-#salvarDesejo{
+<br>
 
 
-background:var(--primary);
+<span class="investimento">
 
-color:white;
+${moeda(item.valor)}
 
-border:none;
-
-padding:14px 22px;
-
-border-radius:14px;
-
-cursor:pointer;
-
-font-weight:600;
-
-transition:.2s;
-
-}
+</span>
 
 
+</div>
 
 
-#salvarMovimento:hover,
-#salvarInvestimento:hover,
-#salvarLimite:hover,
-#salvarDesejo:hover{
+</div>
 
-background:var(--primary-dark);
 
-transform:translateY(-2px);
+`;
+
+
+}).join("");
+
+
 
 }
 
@@ -650,63 +1237,515 @@ transform:translateY(-2px);
 
 
 
-/* ==========================
-DONUT
-========================== */
+
+/* ===============================
+LIMITES
+================================ */
 
 
-.donut{
 
-width:230px;
+function renderLimites(){
 
-height:230px;
 
-border-radius:50%;
+renderListaLimites();
 
-margin:30px auto;
 
-background:
 
-conic-gradient(
+const salvarLimite =
+document.getElementById(
+"salvarLimite"
+);
 
-#2563eb 0deg,
 
-#22c55e 100deg,
 
-#f59e0b 200deg,
+if(salvarLimite){
 
-#ef4444 300deg,
 
-#2563eb 360deg
+
+salvarLimite.onclick=function(){
+
+
+
+const categoria =
+document.getElementById(
+"categoriaLimite"
+).value;
+
+
+
+const valor =
+Number(
+document.getElementById(
+"valorLimite"
+).value
+);
+
+
+
+
+if(!categoria || !valor){
+
+alert(
+"Informe categoria e valor"
+);
+
+return;
+
+}
+
+
+
+DB.limites.push({
+
+id:id(),
+
+categoria,
+
+valor
+
+});
+
+
+
+salvar();
+
+
+
+renderLimites();
+
+
+
+};
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+function gastoCategoria(categoria){
+
+
+
+let total=0;
+
+
+
+DB.despesas.forEach(item=>{
+
+
+if(item.categoria===categoria){
+
+
+total += Number(item.valor);
+
+
+}
+
+
+});
+
+
+
+return total;
+
+
+
+}
+
+
+
+
+
+
+function renderListaLimites(){
+
+
+const lista =
+document.getElementById(
+"listaLimites"
+);
+
+
+
+if(!lista)return;
+
+
+
+
+if(DB.limites.length===0){
+
+
+lista.innerHTML=`
+
+<p class="vazio">
+
+Nenhum limite criado.
+
+</p>
+
+`;
+
+return;
+
+
+}
+
+
+
+
+
+lista.innerHTML =
+
+
+DB.limites.map(item=>{
+
+
+const gasto =
+gastoCategoria(
+item.categoria
+);
+
+
+
+const percentual =
+(item.valor>0)
+?
+(gasto/item.valor)*100
+:
+0;
+
+
+
+return `
+
+
+<div class="item">
+
+
+<div>
+
+
+<strong>
+
+${item.categoria}
+
+</strong>
+
+
+<br>
+
+
+<span>
+
+${moeda(gasto)}
+
+de
+
+${moeda(item.valor)}
+
+</span>
+
+
+<div class="progress">
+
+
+<span style="width:${Math.min(percentual,100)}%">
+
+</span>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+`;
+
+
+
+}).join("");
+
+
+
+}
+/* =====================================
+AUREA
+MAIN.JS
+PARTE 4/5
+
+DESEJOS + EXCLUSÕES + UTILIDADES
+===================================== */
+
+
+
+/* ===============================
+DESEJOS
+================================ */
+
+
+function renderDesejos(){
+
+
+renderListaDesejos();
+
+
+
+const novo =
+document.getElementById(
+"novoDesejo"
+);
+
+
+
+if(novo){
+
+
+novo.onclick=function(){
+
+
+mostrar(
+"formDesejo"
+);
+
+
+};
+
+
+}
+
+
+
+
+
+const salvarDesejo =
+document.getElementById(
+"salvarDesejo"
+);
+
+
+
+if(salvarDesejo){
+
+
+salvarDesejo.onclick=function(){
+
+
+
+const nome =
+document.getElementById(
+"nomeDesejo"
+).value;
+
+
+
+const valor =
+Number(
+document.getElementById(
+"valorDesejo"
+).value
+);
+
+
+
+const prazo =
+document.getElementById(
+"prazoDesejo"
+).value;
+
+
+
+if(!nome || !valor){
+
+
+alert(
+"Preencha os dados do desejo"
+);
+
+
+return;
+
+
+}
+
+
+
+
+DB.desejos.push({
+
+
+id:id(),
+
+nome,
+
+valor,
+
+prazo,
+
+criado:new Date()
+
+
+
+});
+
+
+
+
+salvar();
+
+
+
+renderDesejos();
+
+
+
+};
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+function renderListaDesejos(){
+
+
+
+const lista =
+document.getElementById(
+"listaDesejos"
+);
+
+
+
+if(!lista)return;
+
+
+
+if(DB.desejos.length===0){
+
+
+lista.innerHTML=`
+
+<p class="vazio">
+
+Nenhuma meta criada ainda.
+
+</p>
+
+`;
+
+
+return;
+
+
+}
+
+
+
+
+
+lista.innerHTML =
+
+
+DB.desejos.map(item=>{
+
+
+return `
+
+<div class="item">
+
+
+<div>
+
+<strong>
+${item.nome}
+</strong>
+
+
+<p>
+
+Meta:
+${moeda(item.valor)}
+
+</p>
+
+
+${item.prazo ?
+`
+<small>
+Prazo: ${item.prazo}
+</small>
+`
+:
+""}
+
+
+</div>
+
+
+
+<button onclick="removerDesejo(${item.id})">
+
+Excluir
+
+</button>
+
+
+</div>
+
+
+`;
+
+
+}).join("");
+
+
+
+}
+
+
+
+
+
+function removerDesejo(idDesejo){
+
+
+DB.desejos =
+
+DB.desejos.filter(
+
+item=>item.id !== idDesejo
 
 );
 
 
-display:flex;
 
-align-items:center;
-
-justify-content:center;
-
-position:relative;
-
-}
+salvar();
 
 
 
-.donut::after{
+renderDesejos();
 
-content:"";
 
-width:130px;
-
-height:130px;
-
-background:white;
-
-border-radius:50%;
-
-position:absolute;
 
 }
 
@@ -714,36 +1753,125 @@ position:absolute;
 
 
 
-/* ==========================
-BARRAS DE PROGRESSO
-========================== */
 
 
-.progress{
 
-height:12px;
+/* ===============================
+EXCLUSÃO FINANCEIRA
+================================ */
 
-background:#e5e7eb;
 
-border-radius:20px;
 
-overflow:hidden;
+function removerLancamento(idLancamento){
 
-margin-top:10px;
+
+
+DB.receitas =
+
+DB.receitas.filter(
+
+item=>item.id !== idLancamento
+
+);
+
+
+
+DB.despesas =
+
+DB.despesas.filter(
+
+item=>item.id !== idLancamento
+
+);
+
+
+
+salvar();
+
+
+
+renderFinanceiro();
+
+
+
+}
+
+
+
+
+
+function removerInvestimento(idInvestimento){
+
+
+
+DB.investimentos =
+
+DB.investimentos.filter(
+
+item=>item.id !== idInvestimento
+
+);
+
+
+
+salvar();
+
+
+
+renderInvestimentos();
+
+
 
 }
 
 
 
-.progress span{
 
-display:block;
 
-height:100%;
+function removerLimite(idLimite){
 
-background:var(--primary);
 
-border-radius:20px;
+
+DB.limites =
+
+DB.limites.filter(
+
+item=>item.id !== idLimite
+
+);
+
+
+
+salvar();
+
+
+
+renderLimites();
+
+
+
+}
+
+
+
+
+
+
+
+/* ===============================
+ATUALIZA DASHBOARD
+================================ */
+
+
+
+function atualizarTudo(){
+
+
+salvar();
+
+
+renderDashboard();
+
 
 }
 
@@ -751,68 +1879,63 @@ border-radius:20px;
 
 
 
-/* ==========================
-TAGS
-========================== */
+
+/* ===============================
+MÊS SELECIONADO
+================================ */
 
 
-.tag{
 
-display:inline-block;
+const seletorMes =
+document.getElementById(
+"mesSelecionado"
+);
 
-padding:6px 12px;
 
-border-radius:20px;
 
-font-size:12px;
+if(seletorMes){
 
-font-weight:600;
 
-background:#dbeafe;
+seletorMes.onchange=function(){
 
-color:#1d4ed8;
+
+DB.config.mes =
+this.selectedIndex;
+
+
+
+salvar();
+
+
+
+};
+
+
 
 }
-
-
 /* =====================================
-AUREA - GLOBAL CSS
-PARTE 3/3
+AUREA
+MAIN.JS
+PARTE 5/5
+
+FINALIZAÇÃO + GRÁFICOS + ALERTAS
 ===================================== */
 
 
 
-/* ==========================
-ANIMAÇÕES
-========================== */
+/* ===============================
+FORMATAÇÃO DE DATAS
+================================ */
 
 
-@keyframes aparecer{
-
-from{
-
-opacity:0;
-
-transform:translateY(15px);
-
-}
+function dataFormatada(data){
 
 
-to{
+return new Date(data)
+.toLocaleDateString(
+"pt-BR"
+);
 
-opacity:1;
-
-transform:translateY(0);
-
-}
-
-}
-
-
-
-.containerTela{
-
-animation:aparecer .35s ease;
 
 }
 
@@ -821,59 +1944,28 @@ animation:aparecer .35s ease;
 
 
 
+/* ===============================
+CÁLCULO DE PERCENTUAL
+================================ */
 
-/* ==========================
-TABELAS / HISTÓRICOS
-========================== */
 
 
-table{
+function percentual(valor,total){
 
-width:100%;
 
-border-collapse:collapse;
+if(!total || total===0){
 
-background:white;
-
-border-radius:18px;
-
-overflow:hidden;
+return 0;
 
 }
 
 
+return (
 
-th{
+(valor / total) * 100
 
-text-align:left;
+).toFixed(0);
 
-background:#f8fafc;
-
-padding:16px;
-
-font-size:13px;
-
-color:var(--muted);
-
-}
-
-
-
-td{
-
-padding:16px;
-
-border-bottom:1px solid var(--border);
-
-font-size:14px;
-
-}
-
-
-
-tr:last-child td{
-
-border-bottom:none;
 
 }
 
@@ -883,207 +1975,104 @@ border-bottom:none;
 
 
 
-/* ==========================
-ALERTAS
-========================== */
+
+/* ===============================
+ALERTAS FINANCEIROS
+================================ */
 
 
-#alertas p{
 
-padding:14px;
+function gerarAlertas(){
 
-border-radius:14px;
 
-background:#f8fafc;
+const alerta =
+document.getElementById(
+"alertas"
+);
 
-margin-bottom:10px;
 
-font-size:14px;
+
+if(!alerta)return;
+
+
+
+let mensagens=[];
+
+
+
+const saldoAtual =
+saldo();
+
+
+
+if(saldoAtual < 0){
+
+
+mensagens.push(`
+
+⚠️ Seu saldo está negativo.
+
+`);
+
+
+}
+
+
+
+const total =
+totalReceitas();
+
+
+
+const gastos =
+totalDespesas();
+
+
+
+if(total > 0 && gastos > total*0.8){
+
+
+mensagens.push(`
+
+⚠️ Você já utilizou mais de 80% da sua renda.
+
+`);
+
+
+}
+
+
+
+if(DB.desejos.length>0){
+
+
+mensagens.push(`
+
+✨ Você possui ${DB.desejos.length} metas financeiras.
+
+`);
+
+
+}
+
+
+
+if(mensagens.length===0){
+
+
+mensagens.push(`
+
+✅ Sua organização financeira está em dia.
+
+`);
+
 
 }
 
 
 
 
-
-
-
-/* ==========================
-CATEGORIAS
-========================== */
-
-
-#categoriasGrafico p{
-
-display:flex;
-
-justify-content:space-between;
-
-padding:12px 0;
-
-border-bottom:1px solid var(--border);
-
-color:var(--muted);
-
-}
-
-
-
-
-
-
-
-/* ==========================
-SCROLL
-========================== */
-
-
-::-webkit-scrollbar{
-
-width:8px;
-
-}
-
-
-::-webkit-scrollbar-track{
-
-background:#f1f5f9;
-
-}
-
-
-::-webkit-scrollbar-thumb{
-
-background:#cbd5e1;
-
-border-radius:20px;
-
-}
-
-
-
-
-
-
-
-/* ==========================
-MOBILE
-========================== */
-
-
-@media(max-width:900px){
-
-
-
-.app{
-
-display:block;
-
-}
-
-
-
-.sidebar{
-
-position:relative;
-
-width:100%;
-
-height:auto;
-
-}
-
-
-
-.sidebar nav{
-
-flex-direction:row;
-
-overflow-x:auto;
-
-}
-
-
-
-.menu{
-
-min-width:150px;
-
-}
-
-
-
-.sidebar-footer{
-
-display:none;
-
-}
-
-
-
-.main{
-
-margin-left:0;
-
-width:100%;
-
-padding:20px;
-
-}
-
-
-
-.topbar{
-
-flex-direction:column;
-
-align-items:flex-start;
-
-gap:20px;
-
-}
-
-
-
-.topbar h1{
-
-font-size:28px;
-
-}
-
-
-
-.header-actions{
-
-width:100%;
-
-}
-
-
-
-.cards{
-
-grid-template-columns:1fr;
-
-}
-
-
-
-.card p{
-
-font-size:26px;
-
-}
-
-
-
-.donut{
-
-width:190px;
-
-height:190px;
-
-}
+alerta.innerHTML = mensagens.join("");
 
 
 
@@ -1095,178 +2084,187 @@ height:190px;
 
 
 
-/* ==========================
-PEQUENOS AJUSTES PREMIUM
-========================== */
-
-
-strong{
-
-font-weight:700;
-
-}
+/* ===============================
+GRÁFICO DE CATEGORIAS
+================================ */
 
 
 
-h1,h2,h3{
-
-letter-spacing:-.5px;
-
-}
+function gerarCategorias(){
 
 
 
-button{
-
-cursor:pointer;
-
-}
-
+const grafico =
+document.getElementById(
+"categoriasGrafico"
+);
 
 
-button:active{
 
-transform:scale(.97);
-
-}
-/* =====================================
-AUREA - AJUSTES FINAIS CSS
-CORREÇÕES
-===================================== */
+if(!grafico)return;
 
 
-/* Corrige containers criados pelo JavaScript */
 
-.containerTela{
+let categorias={};
 
-width:100%;
+
+
+DB.despesas.forEach(item=>{
+
+
+let cat =
+item.categoria ||
+"Outros";
+
+
+
+if(!categorias[cat]){
+
+categorias[cat]=0;
 
 }
 
 
 
-/* Remove regra que deixava qualquer primeiro card verde */
-
-.card:first-child p{
-
-color:var(--text);
-
-}
+categorias[cat]+=Number(item.valor);
 
 
 
-/* Classes financeiras */
-
-.receita{
-
-color:#16a34a;
-
-}
+});
 
 
 
-.despesa{
-
-color:#dc2626;
-
-}
+if(Object.keys(categorias).length===0){
 
 
+grafico.innerHTML=`
 
-.saldo{
+<p class="vazio">
 
-color:#2563eb;
+Nenhuma despesa cadastrada.
 
-}
+</p>
+
+`;
 
 
+return;
 
-.investimento{
-
-color:#c9a227;
 
 }
 
 
 
 
+grafico.innerHTML =
 
-/* Botões gerais premium */
 
-button{
+Object.entries(categorias)
 
-border:none;
+.map(([nome,valor])=>{
 
-transition:.25s;
+
+return `
+
+
+<p>
+
+
+<span>
+
+${nome}
+
+</span>
+
+
+<strong>
+
+${moeda(valor)}
+
+</strong>
+
+
+</p>
+
+
+`;
+
+
+})
+
+
+.join("");
+
+
 
 }
 
 
 
-button:hover{
-
-transform:translateY(-2px);
-
-}
 
 
 
-
-
-/* Melhor organização dos formulários */
-
-.painel input,
-.painel select{
-
-max-width:500px;
-
-}
+/* ===============================
+INICIALIZAÇÃO FINAL
+================================ */
 
 
 
-.painel button{
-
-margin-top:5px;
-
-}
+window.onload=function(){
 
 
 
-
-/* Espaçamento entre telas */
-
-#conteudo{
-
-width:100%;
-
-}
+carregar();
 
 
 
-/* Ajuste visual dos valores */
-
-.valor{
-
-font-size:30px;
-
-font-weight:700;
-
-letter-spacing:-1px;
-
-}
+carregarPagina(
+"dashboard"
+);
 
 
 
-/* Estado vazio */
+gerarAlertas();
 
-.vazio{
 
-padding:25px;
 
-text-align:center;
+gerarCategorias();
 
-color:var(--muted);
 
-font-size:14px;
 
-}
+};
+
+
+
+
+
+
+/* ===============================
+EXPOR FUNÇÕES
+PARA HTML
+================================ */
+
+
+
+window.removerDesejo =
+removerDesejo;
+
+
+
+window.removerLancamento =
+removerLancamento;
+
+
+
+window.removerInvestimento =
+removerInvestimento;
+
+
+
+window.removerLimite =
+removerLimite;
+
+
+
+window.moeda =
+moeda;
