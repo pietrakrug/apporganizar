@@ -53,35 +53,44 @@ dashboard: `
 
 <h2>Dashboard</h2>
 
+
 <div class="cards">
 
 <div class="card">
+
 <h3>Receitas</h3>
+
 <p>R$ 0,00</p>
+
 </div>
 
+
 <div class="card">
+
 <h3>Despesas</h3>
+
 <p>R$ 0,00</p>
+
 </div>
 
+
 <div class="card">
+
 <h3>Saldo</h3>
+
 <p>R$ 0,00</p>
+
 </div>
+
 
 <div class="card">
+
 <h3>Investimentos</h3>
+
 <p>R$ 0,00</p>
-</div>
 
 </div>
 
-<div class="painel">
-
-<h3>Alertas Inteligentes</h3>
-
-<p>Nenhum alerta.</p>
 
 </div>
 
@@ -89,9 +98,12 @@ dashboard: `
 `,
 
 
+
 financeiro: `
 
+
 <h2>Meu Financeiro</h2>
+
 
 
 <div class="cards">
@@ -99,10 +111,12 @@ financeiro: `
 
 <div class="card">
 
-<h3>Receitas</h3>
+<h3>Receita Mensal</h3>
 
 <p id="cardReceitas">
+
 R$ 0,00
+
 </p>
 
 </div>
@@ -111,10 +125,12 @@ R$ 0,00
 
 <div class="card">
 
-<h3>Custos</h3>
+<h3>Custo Mensal</h3>
 
 <p id="cardCustos">
+
 R$ 0,00
+
 </p>
 
 </div>
@@ -123,10 +139,12 @@ R$ 0,00
 
 <div class="card">
 
-<h3>Dívidas</h3>
+<h3>Total Dívidas</h3>
 
 <p id="cardDividas">
+
 R$ 0,00
+
 </p>
 
 </div>
@@ -135,16 +153,20 @@ R$ 0,00
 
 <div class="card">
 
-<h3>Investimentos</h3>
+<h3>Total Investido</h3>
 
 <p id="cardInvestimentos">
+
 R$ 0,00
+
 </p>
 
 </div>
 
 
 </div>
+
+
 
 
 
@@ -161,6 +183,58 @@ R$ 0,00
 </button>
 
 
+
+
+
+<div id="formReceita" style="display:none;margin-top:20px;">
+
+
+<input 
+id="descricaoReceita"
+placeholder="Descrição"
+/>
+
+
+<input 
+id="valorReceita"
+type="number"
+placeholder="Valor"
+/>
+
+
+<input 
+id="dataReceita"
+type="date"
+/>
+
+
+<input 
+id="categoriaReceita"
+placeholder="Categoria"
+/>
+
+
+
+<button id="salvarReceita">
+
+Salvar
+
+</button>
+
+
+<button id="cancelarReceita">
+
+Cancelar
+
+</button>
+
+
+
+</div>
+
+
+
+
 <div id="listaReceitas">
 
 Nenhuma receita cadastrada.
@@ -168,10 +242,14 @@ Nenhuma receita cadastrada.
 </div>
 
 
+
 </div>
 
 
+
 `,
+
+
 
 
 investimentos: `
@@ -183,6 +261,7 @@ investimentos: `
 `,
 
 
+
 limites: `
 
 <h2>Limites</h2>
@@ -190,6 +269,7 @@ limites: `
 <p>Em breve...</p>
 
 `,
+
 
 
 desejos: `
@@ -202,6 +282,7 @@ desejos: `
 
 
 };
+
 
 
 
@@ -228,9 +309,11 @@ botao.onclick = ()=>{
 
 
 document.querySelectorAll(".menu")
-.forEach(x =>
-x.classList.remove("active")
-);
+.forEach(x=>{
+
+x.classList.remove("active");
+
+});
 
 
 
@@ -251,7 +334,7 @@ paginas[botao.dataset.page];
 
 if(botao.dataset.page === "financeiro"){
 
-    renderReceitas();
+renderReceitas();
 
 }
 
@@ -264,9 +347,11 @@ if(botao.dataset.page === "financeiro"){
 
 
 
+
 //=============================
 // RECEITAS
 //=============================
+
 
 
 document.addEventListener(
@@ -274,11 +359,53 @@ document.addEventListener(
 function(e){
 
 
+
 if(e.target.id === "novaReceita"){
 
-    adicionarReceita();
+
+document.getElementById("formReceita")
+.style.display="block";
+
 
 }
+
+
+
+
+if(e.target.id === "cancelarReceita"){
+
+
+document.getElementById("formReceita")
+.style.display="none";
+
+
+}
+
+
+
+
+if(e.target.id === "salvarReceita"){
+
+
+salvarReceita();
+
+
+}
+
+
+
+
+
+if(e.target.dataset.excluir){
+
+
+excluirReceita(
+Number(e.target.dataset.excluir)
+);
+
+
+}
+
 
 
 });
@@ -286,50 +413,80 @@ if(e.target.id === "novaReceita"){
 
 
 
-function adicionarReceita(){
+
+
+
+function salvarReceita(){
+
 
 
 const descricao =
-prompt("Descrição da receita");
-
-
-if(!descricao){
-
-    return;
-
-}
+document.getElementById("descricaoReceita").value;
 
 
 
 const valor =
-Number(prompt("Valor da receita"));
+Number(
+document.getElementById("valorReceita").value
+);
 
 
 
-if(isNaN(valor)){
+const data =
+document.getElementById("dataReceita").value;
 
-    return;
+
+
+const categoria =
+document.getElementById("categoriaReceita").value;
+
+
+
+
+if(!descricao || !valor){
+
+
+alert("Preencha descrição e valor");
+
+
+return;
+
 
 }
+
 
 
 
 DB.receitas.push({
 
-    id: Date.now(),
 
-    descricao: descricao,
+id: Date.now(),
 
-    valor: valor
+descricao: descricao,
+
+valor: valor,
+
+data: data,
+
+categoria: categoria
+
 
 });
+
 
 
 
 salvarDados();
 
 
+
 renderReceitas();
+
+
+
+document.getElementById("formReceita")
+.style.display="none";
+
 
 
 }
@@ -340,6 +497,7 @@ renderReceitas();
 function renderReceitas(){
 
 
+
 const lista =
 document.getElementById("listaReceitas");
 
@@ -347,9 +505,10 @@ document.getElementById("listaReceitas");
 
 if(!lista){
 
-    return;
+return;
 
 }
+
 
 
 
@@ -367,9 +526,13 @@ return;
 
 
 
+
+
 let html = "";
 
 let total = 0;
+
+
 
 
 
@@ -380,13 +543,19 @@ total += receita.valor;
 
 
 
+
 html += `
+
 
 <div class="card">
 
+
 <h4>
+
 ${receita.descricao}
+
 </h4>
+
 
 
 <p>
@@ -401,7 +570,36 @@ minimumFractionDigits:2
 </p>
 
 
+
+<p>
+
+Categoria:
+${receita.categoria || "-"}
+
+</p>
+
+
+
+<p>
+
+Data:
+${receita.data || "-"}
+
+</p>
+
+
+
+
+<button data-excluir="${receita.id}">
+
+Excluir
+
+</button>
+
+
+
 </div>
+
 
 `;
 
@@ -411,19 +609,54 @@ minimumFractionDigits:2
 
 
 
+
+
 lista.innerHTML = html;
+
+
 
 
 
 document.getElementById("cardReceitas")
 .innerHTML =
+
 "R$ " +
+
 total.toLocaleString(
 "pt-BR",
 {
 minimumFractionDigits:2
 }
 );
+
+
+
+}
+
+
+
+
+
+function excluirReceita(id){
+
+
+
+DB.receitas =
+
+DB.receitas.filter(
+
+receita => receita.id !== id
+
+);
+
+
+
+
+salvarDados();
+
+
+
+renderReceitas();
 
 
 
