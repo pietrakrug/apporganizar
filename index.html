@@ -1,105 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Organiza | Controle financeiro</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="./styles/global.css" />
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Organiza</title>
+
+<link rel="stylesheet" href="styles/global.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
+
 <body>
-<div class="app-shell">
-<header class="topbar container section">
-<div>
-<p class="label">Financas</p>
-<h1 class="page-title">Organiza</h1>
-<p class="text-muted">Controle financeiro pessoal com clareza visual.</p>
-</div>
-<div class="topbar-actions">
-<button class="ghost-button" id="prevMonthBtn" type="button">&lt;</button>
-<div class="month-chip" id="monthChip">Mes atual</div>
-<button class="ghost-button" id="nextMonthBtn" type="button">&gt;</button>
-<button class="primary-button" id="openFormBtn" type="button">+ Nova transacao</button>
-</div>
+
+<div class="container">
+
+<aside class="sidebar">
+
+<h2>💰 Organiza</h2>
+
+<button class="menu active" data-page="dashboard">Dashboard</button>
+
+<button class="menu" data-page="financeiro">
+Meu Financeiro
+</button>
+
+<button class="menu" data-page="investimentos">
+Investimentos
+</button>
+
+<button class="menu" data-page="limites">
+Limites
+</button>
+
+<button class="menu" data-page="desejos">
+Desejos
+</button>
+
+</aside>
+
+<main>
+
+<header>
+
+<h1 id="tituloPagina">
+Dashboard
+</h1>
+
+<select id="mesSelecionado">
+
+<option>Janeiro 2026</option>
+<option>Fevereiro 2026</option>
+<option>Março 2026</option>
+<option>Abril 2026</option>
+<option selected>Maio 2026</option>
+
+</select>
+
 </header>
 
-<main class="container section dashboard-grid">
+<section id="conteudo">
 
-<section class="card" id="formCard" style="display:none;">
-<div class="card-header"><p class="card-title">Nova transacao</p></div>
-<form id="transactionForm" class="card-body">
-<input type="text" id="descInput" placeholder="Descricao" required />
-<input type="number" id="valueInput" placeholder="Valor" step="0.01" required />
-<select id="typeInput">
-<option value="receita">Receita</option>
-<option value="despesa">Despesa</option>
-</select>
-<input type="text" id="categoryInput" placeholder="Categoria" />
-<input type="date" id="dateInput" required />
-<label style="display:flex; align-items:center; gap:8px; font-size:0.875rem; color:#64748b;">
-<input type="checkbox" id="plannedInput" style="width:auto;" /> Planejado (previsto, ainda nao efetivado)
-</label>
-<div style="display:flex; gap:10px;">
-<button type="submit" class="primary-button">Salvar</button>
-<button type="button" id="cancelFormBtn" class="ghost-button">Cancelar</button>
-</div>
-</form>
-</section>
-
-<section class="summary-grid">
-<article class="card">
-<div class="card-body">
-<span class="label">Receitas</span>
-<strong class="metric-value" id="totalIncome">R$ 0,00</strong>
-</div>
-</article>
-<article class="card">
-<div class="card-body">
-<span class="label">Despesas</span>
-<strong class="metric-value danger" id="totalExpense">R$ 0,00</strong>
-</div>
-</article>
-<article class="card card-success">
-<div class="card-body">
-<span class="label">Saldo do mes</span>
-<strong class="metric-value success" id="totalBalance">R$ 0,00</strong>
-</div>
-</article>
-<article class="card">
-<div class="card-body">
-<span class="label">Planejado (previsto)</span>
-<strong class="metric-value" id="totalPlanned">R$ 0,00</strong>
-<p class="text-muted" id="plannedHint">Saldo previsto somando itens planejados.</p>
-</div>
-</article>
-</section>
-
-<section class="card">
-<div class="card-header">
-<div>
-<p class="card-title">Transacoes do mes</p>
-<p class="card-subtitle" id="listSubtitle">Efetivadas e planejadas</p>
-</div>
-</div>
-<div class="card-body" id="transactionList">
-<p class="text-muted">Nenhuma transacao cadastrada ainda.</p>
-</div>
-</section>
-
-<section class="card">
-<div class="card-header">
-<div>
-<p class="card-title">Resumo mensal (historico e planejamento)</p>
-<p class="card-subtitle">Ultimos e proximos meses com base nas transacoes cadastradas.</p>
-</div>
-</div>
-<div class="card-body" id="monthlySummary">
-<p class="text-muted">Sem dados suficientes ainda.</p>
-</div>
 </section>
 
 </main>
+
 </div>
-<script src="./main.js"></script>
+
+<script src="main.js"></script>
+
 </body>
 </html>
