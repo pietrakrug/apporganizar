@@ -1,6 +1,8 @@
 //======================================
-// ORGANIZA APP - CONTROLE FINANCEIRO
-// PARTE 1/6 - BASE DO SISTEMA
+// AUREA
+// Inteligência Financeira Pessoal
+// MAIN.JS
+// PARTE 1/5 - BASE DO SISTEMA
 //======================================
 
 
@@ -26,73 +28,16 @@ const DB = {
 
     desejos: [],
 
+
     configuracoes: {
 
-        mesSelecionado: new Date().getMonth(),
+        mes: new Date().getMonth(),
 
-        anoSelecionado: new Date().getFullYear()
+        ano: new Date().getFullYear()
 
     }
 
 };
-
-
-
-
-
-//======================================
-// CATEGORIAS PADRÃO
-//======================================
-
-
-const categorias = [
-
-    "Alimentação",
-
-    "Mercado",
-
-    "Combustível",
-
-    "Lazer",
-
-    "Entretenimento",
-
-    "Saúde",
-
-    "Farmácia",
-
-    "Eletrônicos",
-
-    "Serviços",
-
-    "Presente",
-
-    "Casa",
-
-    "Filhos",
-
-    "Viagem",
-
-    "Moradia",
-
-    "Contas da Casa",
-
-    "Assinaturas",
-
-    "Internet/Telefone",
-
-    "Academia",
-
-    "Plano de Saúde",
-
-    "Seguro",
-
-    "Financiamento",
-
-    "Outros"
-
-];
-
 
 
 
@@ -105,39 +50,26 @@ const categorias = [
 function carregarDados(){
 
 
-    const dados = localStorage.getItem(
-        "organizaDB"
-    );
+    const dados = localStorage.getItem("aureaDB");
 
 
     if(dados){
 
-
         try{
 
+            const salvo = JSON.parse(dados);
 
-            const dadosSalvos =
-            JSON.parse(dados);
-
-
-
-            Object.assign(
-                DB,
-                dadosSalvos
-            );
+            Object.assign(DB,salvo);
 
 
-        }catch(error){
-
+        }catch(e){
 
             console.log(
                 "Erro ao carregar dados",
-                error
+                e
             );
 
-
         }
-
 
     }
 
@@ -152,7 +84,7 @@ function salvarDados(){
 
     localStorage.setItem(
 
-        "organizaDB",
+        "aureaDB",
 
         JSON.stringify(DB)
 
@@ -163,11 +95,7 @@ function salvarDados(){
 
 
 
-
-
 carregarDados();
-
-
 
 
 
@@ -178,10 +106,12 @@ carregarDados();
 //======================================
 
 
+
 function moeda(valor){
 
 
     return Number(valor || 0)
+
     .toLocaleString(
 
         "pt-BR",
@@ -202,36 +132,14 @@ function moeda(valor){
 
 
 
-
 function gerarId(){
 
 
     return Date.now() +
-    Math.floor(Math.random()*1000);
 
-
-}
-
-
-
-
-
-function formatarData(data){
-
-
-    if(!data)return "-";
-
-
-    const partes =
-    data.split("-");
-
-
-    if(partes.length!==3)
-    return data;
-
-
-
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    Math.floor(
+        Math.random()*1000
+    );
 
 
 }
@@ -243,11 +151,8 @@ function formatarData(data){
 function mesAtual(){
 
 
-    return (
+    return DB.configuracoes.mes;
 
-        DB.configuracoes.mesSelecionado
-
-    );
 
 }
 
@@ -258,11 +163,8 @@ function mesAtual(){
 function anoAtual(){
 
 
-    return (
+    return DB.configuracoes.ano;
 
-        DB.configuracoes.anoSelecionado
-
-    );
 
 }
 
@@ -270,11 +172,12 @@ function anoAtual(){
 
 
 
-function pertenceAoMes(data){
+function pertenceMes(data){
 
 
     if(!data)
-    return true;
+
+        return true;
 
 
 
@@ -302,107 +205,157 @@ function pertenceAoMes(data){
 
 
 
+function nomeMes(){
+
+
+    const meses = [
+
+        "Janeiro",
+
+        "Fevereiro",
+
+        "Março",
+
+        "Abril",
+
+        "Maio",
+
+        "Junho",
+
+        "Julho",
+
+        "Agosto",
+
+        "Setembro",
+
+        "Outubro",
+
+        "Novembro",
+
+        "Dezembro"
+
+    ];
+
+
+    return meses[mesAtual()];
+
+
+}
+
+
+
 
 
 
 //======================================
-// ESTRUTURA DAS TELAS
+// CATEGORIAS
 //======================================
+
+
+const categorias = [
+
+"Alimentação",
+
+"Mercado",
+
+"Combustível",
+
+"Lazer",
+
+"Entretenimento",
+
+"Saúde",
+
+"Farmácia",
+
+"Eletrônicos",
+
+"Serviços",
+
+"Presente",
+
+"Casa",
+
+"Filhos",
+
+"Viagem",
+
+"Moradia",
+
+"Contas da Casa",
+
+"Assinaturas",
+
+"Internet/Telefone",
+
+"Academia",
+
+"Plano de Saúde",
+
+"Seguro",
+
+"Financiamento",
+
+"Outros"
+
+];
+
+
+
+
+
+
+
+
+//======================================
+// ESTRUTURA DAS PÁGINAS
+//======================================
+
 
 
 const paginas = {
 
 
-
 dashboard: `
 
-
-<h2>Dashboard</h2>
-
-
-<div id="dashboardContainer">
-
-</div>
-
+<div id="dashboardContainer"></div>
 
 `,
-
-
-
 
 
 
 financeiro: `
 
-
-<h2>Meu Financeiro</h2>
-
-
-<div id="financeiroContainer">
-
-</div>
-
+<div id="financeiroContainer"></div>
 
 `,
-
-
 
 
 
 investimentos: `
 
-
-<h2>Investimentos</h2>
-
-
-<div id="investimentosContainer">
-
-</div>
-
+<div id="investimentosContainer"></div>
 
 `,
-
-
-
 
 
 
 limites: `
 
-
-<h2>Limites</h2>
-
-
-<div id="limitesContainer">
-
-</div>
-
+<div id="limitesContainer"></div>
 
 `,
 
 
 
-
-
 desejos: `
 
-
-<h2>Desejos</h2>
-
-
-<div id="desejosContainer">
-
-</div>
-
+<div id="desejosContainer"></div>
 
 `
 
 
-
 };
-
-
-
 
 
 
@@ -416,17 +369,21 @@ desejos: `
 
 
 const conteudo =
+
 document.getElementById(
-"conteudo"
+    "conteudo"
 );
 
 
 
 
-function carregarPagina(nome){
+
+function abrirPagina(nome){
+
 
 
     conteudo.innerHTML =
+
     paginas[nome];
 
 
@@ -470,31 +427,30 @@ function carregarPagina(nome){
     }
 
 
+
 }
 
 
 
 
 
-carregarPagina(
-"dashboard"
-);
 
+document
 
+.querySelectorAll(".menu")
 
-
-
-
-
-document.querySelectorAll(".menu")
 .forEach(botao=>{
 
 
-    botao.onclick = ()=>{
+
+    botao.onclick = function(){
+
 
 
         document
+
         .querySelectorAll(".menu")
+
         .forEach(item=>{
 
             item.classList.remove(
@@ -505,26 +461,35 @@ document.querySelectorAll(".menu")
 
 
 
-        botao.classList.add(
+
+        this.classList.add(
             "active"
         );
 
 
 
+
+
         document.getElementById(
+
             "tituloPagina"
+
         ).innerHTML =
-        botao.innerHTML;
+
+        this.innerText;
 
 
 
-        carregarPagina(
-            botao.dataset.page
+
+        abrirPagina(
+
+            this.dataset.page
+
         );
 
 
 
-    };
+    }
 
 
 });
@@ -533,25 +498,58 @@ document.querySelectorAll(".menu")
 
 
 
-//======================================
-// FUNÇÕES PLACEHOLDER
-// (serão preenchidas nas próximas partes)
-//======================================
-
-
-function renderDashboard(){}
-
-function renderFinanceiro(){}
-
-function renderInvestimentos(){}
-
-function renderLimites(){}
-
-function renderDesejos(){}
 
 //======================================
-// PARTE 2/6
-// DASHBOARD COMPLETO
+// BOTÕES GLOBAIS
+//======================================
+
+
+document.addEventListener(
+
+"click",
+
+function(e){
+
+
+    if(e.target.id==="mesAnterior"){
+
+        alterarMes(-1);
+
+    }
+
+
+
+    if(e.target.id==="proximoMes"){
+
+        alterarMes(1);
+
+    }
+
+
+});
+
+
+
+
+
+
+//======================================
+// INICIALIZAÇÃO
+//======================================
+
+
+
+abrirPagina("dashboard");
+//======================================
+// AUREA
+// PARTE 2/5
+// DASHBOARD
+//======================================
+
+
+
+//======================================
+// CÁLCULOS DO DASHBOARD
 //======================================
 
 
@@ -561,7 +559,7 @@ function totalReceitasMes(){
 
     return DB.receitas
 
-    .filter(item => pertenceAoMes(item.data))
+    .filter(item=>pertenceMes(item.data))
 
     .reduce(
 
@@ -607,7 +605,7 @@ function totalCustosVariaveisMes(){
 
     return DB.custosVariaveis
 
-    .filter(item => pertenceAoMes(item.data))
+    .filter(item=>pertenceMes(item.data))
 
     .reduce(
 
@@ -675,12 +673,17 @@ function totalInvestido(){
 //======================================
 
 
+
 function renderDashboard(){
 
 
+
 const container =
+
 document.getElementById(
+
 "dashboardContainer"
+
 );
 
 
@@ -690,23 +693,37 @@ if(!container)return;
 
 
 
+
 const receitas =
+
 totalReceitasMes();
 
 
 
+
+
 const despesas =
+
 totalDespesasMes();
 
 
 
+
+
 const saldo =
+
 receitas - despesas;
 
 
 
+
+
 const investimentos =
+
 totalInvestido();
+
+
+
 
 
 
@@ -714,33 +731,54 @@ container.innerHTML = `
 
 
 
-<div class="month-selector">
+<div class="dashboard-header">
+
+
+<div>
+
+<h2>
+
+Olá 👋
+
+</h2>
+
+
+<p>
+
+${nomeMes()} de ${anoAtual()}
+
+</p>
+
+
+</div>
+
+
+
+<div>
 
 
 <button id="mesAnterior">
 
-&lt;
+←
 
 </button>
-
-
-
-<div class="month-chip">
-
-${nomeMes()} ${anoAtual()}
-
-</div>
 
 
 
 <button id="proximoMes">
 
-&gt;
+→
 
 </button>
 
 
 </div>
+
+
+
+</div>
+
+
 
 
 
@@ -756,16 +794,16 @@ ${nomeMes()} ${anoAtual()}
 
 <h3>
 
-💰 Receitas
+Receitas
 
 </h3>
 
 
-<strong>
+<p>
 
 ${moeda(receitas)}
 
-</strong>
+</p>
 
 
 </div>
@@ -779,16 +817,16 @@ ${moeda(receitas)}
 
 <h3>
 
-📉 Despesas
+Despesas
 
 </h3>
 
 
-<strong>
+<p>
 
 ${moeda(despesas)}
 
-</strong>
+</p>
 
 
 </div>
@@ -802,20 +840,19 @@ ${moeda(despesas)}
 
 <h3>
 
-📊 Saldo do mês
+Saldo do mês
 
 </h3>
 
 
-<strong>
+<p>
 
 ${moeda(saldo)}
 
-</strong>
+</p>
 
 
 </div>
-
 
 
 
@@ -826,16 +863,16 @@ ${moeda(saldo)}
 
 <h3>
 
-📈 Investimentos
+Investimentos
 
 </h3>
 
 
-<strong>
+<p>
 
 ${moeda(investimentos)}
 
-</strong>
+</p>
 
 
 </div>
@@ -843,6 +880,7 @@ ${moeda(investimentos)}
 
 
 </div>
+
 
 
 
@@ -863,6 +901,7 @@ Alertas Inteligentes
 
 
 <div id="alertasDashboard">
+
 
 </div>
 
@@ -892,28 +931,30 @@ Gastos por Categoria
 <div class="grafico-area">
 
 
-<div 
-class="donut"
-id="graficoDonut">
-
-</div>
-
-
-
-<div 
-id="legendaCategorias">
-
-</div>
+<div class="donut">
 
 
 </div>
 
 
 
+<div id="legendaCategorias">
+
+
 </div>
+
+
+
+</div>
+
+
+
+</div>
+
 
 
 `;
+
 
 
 
@@ -922,31 +963,9 @@ gerarAlertas();
 
 
 
-renderGraficoCategorias();
+gerarCategorias();
 
 
-
-document
-.getElementById("mesAnterior")
-.onclick = ()=>{
-
-
-    alterarMes(-1);
-
-
-};
-
-
-
-document
-.getElementById("proximoMes")
-.onclick = ()=>{
-
-
-    alterarMes(1);
-
-
-};
 
 
 
@@ -959,92 +978,64 @@ document
 
 
 
+
 //======================================
-// MÊS
+// TROCA DE MÊS
 //======================================
-
-
-function nomeMes(){
-
-
-const meses=[
-
-"Janeiro",
-
-"Fevereiro",
-
-"Março",
-
-"Abril",
-
-"Maio",
-
-"Junho",
-
-"Julho",
-
-"Agosto",
-
-"Setembro",
-
-"Outubro",
-
-"Novembro",
-
-"Dezembro"
-
-];
-
-
-return meses[
-DB.configuracoes.mesSelecionado
-];
-
-
-}
-
-
 
 
 
 function alterarMes(valor){
 
 
-DB.configuracoes.mesSelecionado += valor;
+
+DB.configuracoes.mes += valor;
 
 
 
-if(DB.configuracoes.mesSelecionado > 11){
 
 
-    DB.configuracoes.mesSelecionado = 0;
+if(DB.configuracoes.mes > 11){
 
-    DB.configuracoes.anoSelecionado++;
+
+    DB.configuracoes.mes = 0;
+
+
+    DB.configuracoes.ano++;
+
+
+}
+
+
+
+
+
+if(DB.configuracoes.mes < 0){
+
+
+    DB.configuracoes.mes = 11;
+
+
+    DB.configuracoes.ano--;
 
 
 }
 
 
-
-if(DB.configuracoes.mesSelecionado < 0){
-
-
-    DB.configuracoes.mesSelecionado = 11;
-
-    DB.configuracoes.anoSelecionado--;
-
-
-}
 
 
 
 salvarDados();
 
 
+
 renderDashboard();
 
 
+
 }
+
+
 
 
 
@@ -1058,12 +1049,17 @@ renderDashboard();
 //======================================
 
 
+
 function gerarAlertas(){
 
 
+
 const area =
+
 document.getElementById(
+
 "alertasDashboard"
+
 );
 
 
@@ -1073,31 +1069,36 @@ if(!area)return;
 
 
 
-const receitas =
+
+const receita =
+
 totalReceitasMes();
 
 
 
-const despesas =
+
+
+const despesa =
+
 totalDespesasMes();
 
 
 
-const saldo =
-receitas - despesas;
 
 
-
-let mensagens=[];
+let mensagens = [];
 
 
 
 
-if(saldo < 0){
+
+if(receita === 0){
 
 
 mensagens.push(
-"⚠️ Suas despesas estão maiores que suas receitas."
+
+"💡 Cadastre suas receitas para acompanhar sua evolução."
+
 );
 
 
@@ -1105,25 +1106,49 @@ mensagens.push(
 
 
 
-if(receitas > 0){
+
+
+else{
 
 
 const percentual =
-(despesas / receitas)*100;
+
+(despesa / receita) * 100;
 
 
 
-if(percentual >= 80){
+
+
+if(percentual >= 100){
 
 
 mensagens.push(
 
-`⚠️ Você já comprometeu ${percentual.toFixed(0)}% da renda.`
+"⚠️ Seus gastos ultrapassaram sua receita."
 
 );
 
 
 }
+
+
+
+
+
+else if(percentual >= 80){
+
+
+mensagens.push(
+
+`⚠️ Você já comprometeu ${percentual.toFixed(0)}% da sua renda.`
+
+);
+
+
+}
+
+
+
 
 
 else{
@@ -1131,7 +1156,7 @@ else{
 
 mensagens.push(
 
-`✅ Você utilizou ${percentual.toFixed(0)}% da renda.`
+`✅ Você comprometeu ${percentual.toFixed(0)}% da sua renda.`
 
 );
 
@@ -1143,22 +1168,19 @@ mensagens.push(
 
 
 
-
-if(mensagens.length===0){
-
-
-mensagens.push(
-"✅ Nenhum alerta no momento."
-);
-
-
-}
 
 
 
 area.innerHTML =
+
 mensagens
-.map(item=>`<p>${item}</p>`)
+
+.map(msg=>
+
+`<p>${msg}</p>`
+
+)
+
 .join("");
 
 
@@ -1173,27 +1195,48 @@ mensagens
 
 
 
+
 //======================================
 // GASTOS POR CATEGORIA
 //======================================
 
 
-function gastosPorCategoria(){
+
+function gerarCategorias(){
 
 
 
-const dados={};
+const area =
+
+document.getElementById(
+
+"legendaCategorias"
+
+);
+
+
+
+if(!area)return;
+
+
+
+
+
+let dados = {};
+
+
 
 
 
 DB.custosVariaveis
 
-.filter(item=>pertenceAoMes(item.data))
+.filter(item=>pertenceMes(item.data))
 
 .forEach(item=>{
 
 
 const categoria =
+
 item.categoria || "Outros";
 
 
@@ -1207,12 +1250,23 @@ dados[categoria] =
 Number(item.valor);
 
 
-
 });
 
 
 
-return dados;
+
+
+
+
+if(Object.keys(dados).length===0){
+
+
+area.innerHTML =
+
+"<p>Nenhum gasto cadastrado.</p>";
+
+
+return;
 
 
 }
@@ -1222,45 +1276,31 @@ return dados;
 
 
 
-function renderGraficoCategorias(){
-
-
-const legenda =
-document.getElementById(
-"legendaCategorias"
-);
+area.innerHTML =
 
 
 
-if(!legenda)return;
+Object.entries(dados)
+
+.map(item=>{
 
 
 
-const dados =
-gastosPorCategoria();
-
-
-
-let html="";
-
-
-
-Object.keys(dados)
-.forEach(categoria=>{
-
-
-html += `
+return `
 
 
 <p>
 
-<span class="categoria-dot"></span>
+<strong>
 
-${categoria}
+${item[0]}
 
--
+</strong>
 
-${moeda(dados[categoria])}
+<br>
+
+${moeda(item[1])}
+
 
 </p>
 
@@ -1268,46 +1308,40 @@ ${moeda(dados[categoria])}
 `;
 
 
-});
 
+})
 
-
-if(html===""){
-
-
-html =
-"<p>Nenhum gasto categorizado.</p>";
+.join("");
 
 
 
 }
-
-
-
-legenda.innerHTML=html;
-
-
-
-}
-
 //======================================
-// PARTE 3/6
+// AUREA
+// PARTE 3/5
 // MEU FINANCEIRO
 //======================================
+
+
 
 
 
 function renderFinanceiro(){
 
 
+
 const container =
+
 document.getElementById(
+
 "financeiroContainer"
+
 );
 
 
 
 if(!container)return;
+
 
 
 
@@ -1319,50 +1353,62 @@ container.innerHTML = `
 <div class="cards">
 
 
+
 <div class="card">
 
-<h3>Receitas</h3>
+<h3>
 
-<strong id="totalFinanceiroReceitas">
+Receita Mensal
+
+</h3>
+
+<p>
 
 ${moeda(totalReceitasMes())}
 
-</strong>
+</p>
 
 </div>
 
 
 
+
+
 <div class="card">
 
-<h3>Despesas</h3>
+<h3>
 
-<strong id="totalFinanceiroDespesas">
+Custo Mensal
+
+</h3>
+
+
+<p>
 
 ${moeda(totalDespesasMes())}
 
-</strong>
+</p>
 
 </div>
+
+
 
 
 
 <div class="card">
 
-<h3>Saldo</h3>
+<h3>
 
-<strong>
+Total Dívidas
 
-${moeda(
-totalReceitasMes()
--
-totalDespesasMes()
-)}
+</h3>
 
-</strong>
 
-</div>
+<p>
 
+${moeda(totalDividas())}
+
+</p>
 
 </div>
 
@@ -1370,14 +1416,48 @@ totalDespesasMes()
 
 
 
-<section class="painel">
+<div class="card">
+
+<h3>
+
+Total Investido
+
+</h3>
 
 
-<h3>Receitas</h3>
+<p>
+
+${moeda(totalInvestido())}
+
+</p>
+
+</div>
 
 
 
-<button id="btnNovaReceita">
+</div>
+
+
+
+
+
+
+
+
+<div class="painel">
+
+
+
+<h3>
+
+Receitas
+
+</h3>
+
+
+
+
+<button id="novaReceita">
 
 + Nova Receita
 
@@ -1386,35 +1466,43 @@ totalDespesasMes()
 
 
 
-<div id="formReceitaFinanceiro"
-style="display:none;">
+
+<div id="formReceita" style="display:none">
 
 
-<input id="recDescricao"
+<input 
+id="recDescricao"
 placeholder="Descrição">
 
 
-<input id="recValor"
+<input 
+id="recValor"
 type="number"
 placeholder="Valor">
 
 
-<input id="recData"
+
+<input 
+id="recData"
 type="date">
 
 
-<input id="recCategoria"
+
+<input 
+id="recCategoria"
 placeholder="Categoria">
 
 
-<button id="salvarRec">
+
+<button id="salvarReceita">
 
 Salvar
 
 </button>
 
 
-<button id="cancelarRec">
+
+<button id="cancelarReceita">
 
 Cancelar
 
@@ -1427,14 +1515,14 @@ Cancelar
 
 
 
+<div id="listaReceitas">
 
-<div id="listaReceitasFinanceiro">
 
 </div>
 
 
 
-</section>
+</div>
 
 
 
@@ -1443,14 +1531,19 @@ Cancelar
 
 
 
-<section class="painel">
+
+<div class="painel">
 
 
-<h3>Custos Fixos</h3>
+<h3>
+
+Custos Fixos
+
+</h3>
 
 
 
-<button id="btnNovoFixo">
+<button id="novoFixo">
 
 + Novo Custo Fixo
 
@@ -1458,25 +1551,34 @@ Cancelar
 
 
 
-<div id="formFixo"
-style="display:none;">
 
 
-<input id="fixoNome"
+
+<div id="formFixo" style="display:none">
+
+
+<input 
+id="fixoNome"
 placeholder="Nome">
 
 
-<input id="fixoValor"
+<input 
+id="fixoValor"
 type="number"
 placeholder="Valor">
 
 
-<input id="fixoCategoria"
+
+<input 
+id="fixoCategoria"
 placeholder="Categoria">
 
 
-<input id="fixoPagamento"
+
+<input 
+id="fixoPagamento"
 placeholder="Forma pagamento">
+
 
 
 <button id="salvarFixo">
@@ -1487,26 +1589,21 @@ Salvar
 
 
 
-<button id="cancelarFixo">
-
-Cancelar
-
-</button>
-
-
-
 </div>
+
+
 
 
 
 
 <div id="listaFixos">
 
+
 </div>
 
 
 
-</section>
+</div>
 
 
 
@@ -1515,15 +1612,20 @@ Cancelar
 
 
 
-<section class="painel">
+
+<div class="painel">
 
 
-<h3>Custos Variáveis</h3>
+<h3>
+
+Custos Variáveis
+
+</h3>
 
 
 
 
-<button id="btnNovoVariavel">
+<button id="novoVariavel">
 
 + Novo Custo Variável
 
@@ -1531,25 +1633,35 @@ Cancelar
 
 
 
-<div id="formVariavel"
-style="display:none;">
 
 
-<input id="varNome"
+
+<div id="formVariavel" style="display:none">
+
+
+<input 
+id="varNome"
 placeholder="Nome">
 
 
-<input id="varValor"
+
+<input 
+id="varValor"
 type="number"
 placeholder="Valor">
 
 
-<input id="varData"
+
+<input 
+id="varData"
 type="date">
 
 
-<input id="varCategoria"
+
+<input 
+id="varCategoria"
 placeholder="Categoria">
+
 
 
 <button id="salvarVariavel">
@@ -1559,25 +1671,22 @@ Salvar
 </button>
 
 
-<button id="cancelarVariavel">
-
-Cancelar
-
-</button>
-
 
 </div>
+
+
 
 
 
 
 <div id="listaVariaveis">
 
+
 </div>
 
 
 
-</section>
+</div>
 
 
 
@@ -1585,220 +1694,17 @@ Cancelar
 
 
 
-renderListaReceitas();
 
-renderListaFixos();
+renderReceitas();
 
-renderListaVariaveis();
+renderFixos();
+
+renderVariaveis();
 
 
 
 }
 
-
-
-
-
-//======================================
-// EVENTOS FINANCEIRO
-//======================================
-
-
-
-document.addEventListener(
-"click",
-function(e){
-
-
-
-
-
-// RECEITAS
-
-
-if(e.target.id==="btnNovaReceita"){
-
-
-mostrar(
-"formReceitaFinanceiro"
-);
-
-
-}
-
-
-
-
-
-if(e.target.id==="cancelarRec"){
-
-
-esconder(
-"formReceitaFinanceiro"
-);
-
-
-}
-
-
-
-
-if(e.target.id==="salvarRec"){
-
-
-salvarReceitaFinanceiro();
-
-
-}
-
-
-
-
-
-
-if(e.target.dataset.delreceita){
-
-
-deletarReceita(
-
-Number(
-e.target.dataset.delreceita
-
-)
-
-);
-
-
-}
-
-
-
-
-
-
-// FIXOS
-
-
-
-if(e.target.id==="btnNovoFixo"){
-
-
-mostrar("formFixo");
-
-
-}
-
-
-
-if(e.target.id==="cancelarFixo"){
-
-
-esconder("formFixo");
-
-
-}
-
-
-
-if(e.target.id==="salvarFixo"){
-
-
-salvarFixo();
-
-
-}
-
-
-
-if(e.target.dataset.delfixo){
-
-
-deletarFixo(
-
-Number(e.target.dataset.delfixo)
-
-);
-
-
-}
-
-
-
-
-
-
-
-// VARIÁVEIS
-
-
-if(e.target.id==="btnNovoVariavel"){
-
-
-mostrar("formVariavel");
-
-
-}
-
-
-
-
-if(e.target.id==="cancelarVariavel"){
-
-
-esconder("formVariavel");
-
-
-}
-
-
-
-
-if(e.target.id==="salvarVariavel"){
-
-
-salvarVariavel();
-
-
-}
-
-
-
-if(e.target.dataset.delvariavel){
-
-
-deletarVariavel(
-
-Number(e.target.dataset.delvariavel)
-
-);
-
-
-}
-
-
-
-});
-
-
-
-
-
-
-function mostrar(id){
-
-document.getElementById(id)
-.style.display="block";
-
-}
-
-
-
-function esconder(id){
-
-document.getElementById(id)
-.style.display="none";
-
-}
 
 
 
@@ -1812,7 +1718,8 @@ document.getElementById(id)
 //======================================
 
 
-function salvarReceitaFinanceiro(){
+
+function salvarReceita(){
 
 
 
@@ -1823,19 +1730,24 @@ id:gerarId(),
 
 
 descricao:
+
 recDescricao.value,
 
 
 valor:
+
 Number(recValor.value),
 
 
 data:
+
 recData.value,
 
 
 categoria:
+
 recCategoria.value
+
 
 
 });
@@ -1845,7 +1757,9 @@ recCategoria.value
 salvarDados();
 
 
+
 renderFinanceiro();
+
 
 
 }
@@ -1853,12 +1767,17 @@ renderFinanceiro();
 
 
 
-function renderListaReceitas(){
+
+function renderReceitas(){
+
 
 
 const lista =
+
 document.getElementById(
-"listaReceitasFinanceiro"
+
+"listaReceitas"
+
 );
 
 
@@ -1868,11 +1787,33 @@ if(!lista)return;
 
 
 
+if(DB.receitas.length===0){
+
+
 lista.innerHTML =
+
+"<p>Nenhuma receita cadastrada.</p>";
+
+
+return;
+
+
+}
+
+
+
+
+
+
+lista.innerHTML =
+
+
+
 DB.receitas.map(item=>`
 
 
-<div class="item-card">
+
+<div class="item">
 
 
 <strong>
@@ -1889,15 +1830,8 @@ ${moeda(item.valor)}
 </p>
 
 
-<p>
-
-${item.categoria || ""}
-
-</p>
-
-
-
-<button data-delreceita="${item.id}">
+<button 
+data-delete-receita="${item.id}">
 
 Excluir
 
@@ -1905,6 +1839,7 @@ Excluir
 
 
 </div>
+
 
 
 `).join("");
@@ -1917,18 +1852,32 @@ Excluir
 
 
 
-function deletarReceita(id){
+
+
+
+
+function excluirReceita(id){
+
 
 
 DB.receitas =
+
 DB.receitas.filter(
-x=>x.id!==id
+
+item=>
+
+item.id!==id
+
 );
+
 
 
 salvarDados();
 
+
+
 renderFinanceiro();
+
 
 
 }
@@ -1948,6 +1897,7 @@ renderFinanceiro();
 
 
 function salvarFixo(){
+
 
 
 DB.custosFixos.push({
@@ -1976,11 +1926,13 @@ pagamento:
 fixoPagamento.value
 
 
+
 });
 
 
 
 salvarDados();
+
 
 
 renderFinanceiro();
@@ -1992,12 +1944,17 @@ renderFinanceiro();
 
 
 
-function renderListaFixos(){
+
+function renderFixos(){
+
 
 
 const lista =
+
 document.getElementById(
+
 "listaFixos"
+
 );
 
 
@@ -2007,12 +1964,16 @@ if(!lista)return;
 
 
 
+
 lista.innerHTML =
+
+
 
 DB.custosFixos.map(item=>`
 
 
-<div class="item-card">
+
+<div class="item">
 
 
 <strong>
@@ -2022,6 +1983,7 @@ ${item.nome}
 </strong>
 
 
+
 <p>
 
 ${moeda(item.valor)}
@@ -2029,19 +1991,15 @@ ${moeda(item.valor)}
 </p>
 
 
-<p>
 
-${item.categoria || ""}
+<button
 
-</p>
-
-
-
-<button data-delfixo="${item.id}">
+data-delete-fixo="${item.id}">
 
 Excluir
 
 </button>
+
 
 
 </div>
@@ -2060,13 +2018,20 @@ Excluir
 
 
 
-function deletarFixo(id){
+
+
+function excluirFixo(id){
+
 
 
 DB.custosFixos =
 
 DB.custosFixos.filter(
-x=>x.id!==id
+
+item=>
+
+item.id!==id
+
 );
 
 
@@ -2074,11 +2039,13 @@ x=>x.id!==id
 salvarDados();
 
 
+
 renderFinanceiro();
 
 
 
 }
+
 
 
 
@@ -2123,11 +2090,13 @@ categoria:
 varCategoria.value
 
 
+
 });
 
 
 
 salvarDados();
+
 
 
 renderFinanceiro();
@@ -2140,13 +2109,19 @@ renderFinanceiro();
 
 
 
-function renderListaVariaveis(){
+
+
+
+function renderVariaveis(){
 
 
 
 const lista =
+
 document.getElementById(
+
 "listaVariaveis"
+
 );
 
 
@@ -2156,12 +2131,16 @@ if(!lista)return;
 
 
 
+
 lista.innerHTML =
+
+
 
 DB.custosVariaveis.map(item=>`
 
 
-<div class="item-card">
+
+<div class="item">
 
 
 <strong>
@@ -2171,6 +2150,7 @@ ${item.nome}
 </strong>
 
 
+
 <p>
 
 ${moeda(item.valor)}
@@ -2178,21 +2158,19 @@ ${moeda(item.valor)}
 </p>
 
 
-<p>
 
-${item.categoria || ""}
+<button
 
-</p>
-
-
-<button data-delvariavel="${item.id}">
+data-delete-variavel="${item.id}">
 
 Excluir
 
 </button>
 
 
+
 </div>
+
 
 
 `).join("");
@@ -2207,13 +2185,20 @@ Excluir
 
 
 
-function deletarVariavel(id){
+
+
+function excluirVariavel(id){
+
 
 
 DB.custosVariaveis =
 
 DB.custosVariaveis.filter(
-x=>x.id!==id
+
+item=>
+
+item.id!==id
+
 );
 
 
@@ -2221,151 +2206,120 @@ x=>x.id!==id
 salvarDados();
 
 
+
 renderFinanceiro();
 
 
 
 }
+
+
+
+
+
+
+
+
+
 //======================================
-// PARTE 4/6
-// DÍVIDAS + INVESTIMENTOS
+// EVENTOS FINANCEIRO
 //======================================
 
 
 
+document.addEventListener(
+
+"click",
+
+function(e){
 
 
 
-//======================================
-// DÍVIDAS
-//======================================
+if(e.target.id==="novaReceita"){
+
+
+formReceita.style.display="block";
+
+
+}
 
 
 
-function renderDividas(){
 
 
-const container =
-document.getElementById(
-"financeiroContainer"
+if(e.target.id==="cancelarReceita"){
+
+
+formReceita.style.display="none";
+
+
+}
+
+
+
+
+
+if(e.target.id==="salvarReceita"){
+
+
+salvarReceita();
+
+
+}
+
+
+
+
+
+if(e.target.dataset.deleteReceita){
+
+
+excluirReceita(
+
+Number(e.target.dataset.deleteReceita)
+
 );
 
 
+}
 
-if(!container)return;
 
 
 
-const dividasHTML = `
 
 
-<section class="painel">
+if(e.target.id==="novoFixo"){
 
 
-<h3>
+formFixo.style.display="block";
 
-Dívidas
 
-</h3>
+}
 
 
 
-<button id="btnNovaDivida">
 
-+ Nova Dívida
 
-</button>
+if(e.target.id==="salvarFixo"){
 
 
+salvarFixo();
 
-<div id="formDivida"
-style="display:none;">
 
+}
 
 
-<input id="divNome"
-placeholder="Nome da dívida">
 
 
 
-<input id="divValor"
-type="number"
-placeholder="Valor total">
+if(e.target.dataset.deleteFixo){
 
 
+excluirFixo(
 
-<input id="divParcelas"
-type="number"
-placeholder="Quantidade parcelas">
+Number(e.target.dataset.deleteFixo)
 
-
-
-<input id="divVencimento"
-type="date">
-
-
-
-<select id="divStatus">
-
-<option value="Pendente">
-
-Pendente
-
-</option>
-
-
-<option value="Pago">
-
-Pago
-
-</option>
-
-
-</select>
-
-
-
-<button id="salvarDivida">
-
-Salvar
-
-</button>
-
-
-
-<button id="cancelarDivida">
-
-Cancelar
-
-</button>
-
-
-
-</div>
-
-
-
-
-
-<div id="listaDividas">
-
-</div>
-
-
-
-</section>
-
-
-`;
-
-
-
-container.innerHTML += dividasHTML;
-
-
-
-renderListaDividas();
-
+);
 
 
 }
@@ -2376,172 +2330,80 @@ renderListaDividas();
 
 
 
-function salvarDivida(){
+if(e.target.id==="novoVariavel"){
+
+
+formVariavel.style.display="block";
+
+
+}
 
 
 
-DB.dividas.push({
 
 
-id:gerarId(),
+if(e.target.id==="salvarVariavel"){
 
 
-nome:
-
-divNome.value,
+salvarVariavel();
 
 
-valor:
-
-Number(divValor.value),
+}
 
 
-parcelas:
-
-Number(divParcelas.value),
 
 
-vencimento:
 
-divVencimento.value,
+if(e.target.dataset.deleteVariavel){
 
 
-status:
+excluirVariavel(
 
-divStatus.value
+Number(e.target.dataset.deleteVariavel)
+
+);
+
+
+}
+
 
 
 });
 
 
+//======================================
+// AUREA
+// PARTE 4/5
+// INVESTIMENTOS + DÍVIDAS
+//======================================
 
-salvarDados();
 
 
 
-renderFinanceiro();
 
 
+//======================================
+// TOTAL DÍVIDAS
+//======================================
 
-}
 
+function totalDividas(){
 
 
+return DB.dividas
 
+.reduce(
 
-function renderListaDividas(){
+(total,item)=>
 
+total + Number(item.valor),
 
-
-const lista =
-document.getElementById(
-"listaDividas"
-);
-
-
-
-if(!lista)return;
-
-
-
-
-lista.innerHTML =
-
-
-
-DB.dividas.map(item=>`
-
-
-<div class="item-card">
-
-
-<strong>
-
-${item.nome}
-
-</strong>
-
-
-<p>
-
-Valor:
-${moeda(item.valor)}
-
-</p>
-
-
-
-<p>
-
-Parcelas:
-${item.parcelas}
-
-</p>
-
-
-
-<p>
-
-Vencimento:
-${formatarData(item.vencimento)}
-
-</p>
-
-
-
-<p>
-
-Status:
-${item.status}
-
-</p>
-
-
-
-<button 
-data-deldivida="${item.id}">
-
-Excluir
-
-</button>
-
-
-</div>
-
-
-`).join("");
-
-
-
-}
-
-
-
-
-
-
-
-function deletarDivida(id){
-
-
-DB.dividas =
-
-DB.dividas.filter(
-
-x=>x.id!==id
+0
 
 );
 
 
-
-salvarDados();
-
-
-renderFinanceiro();
-
-
 }
-
 
 
 
@@ -2557,19 +2419,22 @@ renderFinanceiro();
 
 
 
-
 function renderInvestimentos(){
 
 
 
 const container =
+
 document.getElementById(
+
 "investimentosContainer"
+
 );
 
 
 
 if(!container)return;
+
 
 
 
@@ -2583,7 +2448,6 @@ container.innerHTML = `
 
 <div class="card">
 
-
 <h3>
 
 Total Investido
@@ -2591,11 +2455,11 @@ Total Investido
 </h3>
 
 
-<strong>
+<p>
 
 ${moeda(totalInvestido())}
 
-</strong>
+</p>
 
 
 </div>
@@ -2608,54 +2472,56 @@ ${moeda(totalInvestido())}
 
 
 
-<section class="painel">
+
+
+<div class="painel">
 
 
 <h3>
 
-Aportes
+Adicionar Investimento
 
 </h3>
 
 
 
-<button id="btnNovoInvestimento">
 
-+ Novo Aporte
+<input 
+id="invNome"
 
-</button>
-
-
-
-
-<div id="formInvestimento"
-style="display:none;">
+placeholder="Nome do investimento">
 
 
 
-<input id="invNome"
-
-placeholder="Nome investimento">
 
 
-
-<input id="invValor"
+<input 
+id="invValor"
 
 type="number"
 
-placeholder="Valor aporte">
+placeholder="Valor aportado">
 
 
 
-<input id="invData"
+
+
+<input 
+id="invData"
 
 type="date">
 
 
 
-<input id="invTipo"
 
-placeholder="Tipo (CDB, Ação...)">
+
+<input 
+id="invTipo"
+
+placeholder="Tipo (CDB, Ação, Fundo...)">
+
+
+
 
 
 
@@ -2667,11 +2533,6 @@ Salvar
 
 
 
-<button id="cancelarInvestimento">
-
-Cancelar
-
-</button>
 
 
 
@@ -2680,6 +2541,17 @@ Cancelar
 
 
 
+
+
+
+<div class="painel">
+
+
+<h3>
+
+Meus Investimentos
+
+</h3>
 
 
 <div id="listaInvestimentos">
@@ -2687,8 +2559,8 @@ Cancelar
 </div>
 
 
+</div>
 
-</section>
 
 
 `;
@@ -2696,6 +2568,7 @@ Cancelar
 
 
 renderListaInvestimentos();
+
 
 
 }
@@ -2715,7 +2588,11 @@ function salvarInvestimento(){
 DB.investimentos.push({
 
 
-id:gerarId(),
+
+id:
+
+gerarId(),
+
 
 
 nome:
@@ -2723,9 +2600,11 @@ nome:
 invNome.value,
 
 
+
 valor:
 
 Number(invValor.value),
+
 
 
 data:
@@ -2733,9 +2612,11 @@ data:
 invData.value,
 
 
+
 tipo:
 
 invTipo.value
+
 
 
 });
@@ -2745,7 +2626,9 @@ invTipo.value
 salvarDados();
 
 
+
 renderInvestimentos();
+
 
 
 }
@@ -2757,17 +2640,42 @@ renderInvestimentos();
 
 
 
+
 function renderListaInvestimentos(){
 
 
+
 const lista =
+
 document.getElementById(
+
 "listaInvestimentos"
+
 );
 
 
 
 if(!lista)return;
+
+
+
+
+
+if(DB.investimentos.length===0){
+
+
+lista.innerHTML =
+
+"<p>Nenhum investimento cadastrado.</p>";
+
+
+return;
+
+
+}
+
+
+
 
 
 
@@ -2778,7 +2686,8 @@ lista.innerHTML =
 DB.investimentos.map(item=>`
 
 
-<div class="item-card">
+
+<div class="item">
 
 
 <strong>
@@ -2788,11 +2697,13 @@ ${item.nome}
 </strong>
 
 
+
 <p>
 
 ${moeda(item.valor)}
 
 </p>
+
 
 
 
@@ -2804,23 +2715,18 @@ ${item.tipo || ""}
 
 
 
-<p>
+<button
 
-${formatarData(item.data)}
-
-</p>
-
-
-
-<button 
-data-delinvestimento="${item.id}">
+data-delete-investimento="${item.id}">
 
 Excluir
 
 </button>
 
 
+
 </div>
+
 
 
 `).join("");
@@ -2836,14 +2742,17 @@ Excluir
 
 
 
-function deletarInvestimento(id){
+function excluirInvestimento(id){
+
 
 
 DB.investimentos =
 
 DB.investimentos.filter(
 
-x=>x.id!==id
+item=>
+
+item.id!==id
 
 );
 
@@ -2852,7 +2761,9 @@ x=>x.id!==id
 salvarDados();
 
 
+
 renderInvestimentos();
+
 
 
 }
@@ -2866,7 +2777,330 @@ renderInvestimentos();
 
 
 //======================================
-// EVENTOS DÍVIDAS E INVESTIMENTOS
+// DÍVIDAS
+//======================================
+
+
+
+function renderDividas(){
+
+
+
+const area =
+
+document.getElementById(
+
+"dividasContainer"
+
+);
+
+
+
+if(!area)return;
+
+
+
+
+area.innerHTML = `
+
+
+
+<div class="painel">
+
+
+<h3>
+
+Adicionar Dívida
+
+</h3>
+
+
+
+
+<input 
+id="divNome"
+
+placeholder="Nome da dívida">
+
+
+
+
+
+<input 
+id="divValor"
+
+type="number"
+
+placeholder="Valor total">
+
+
+
+
+
+<input 
+id="divParcelas"
+
+type="number"
+
+placeholder="Número de parcelas">
+
+
+
+
+
+<input 
+id="divVencimento"
+
+type="date">
+
+
+
+
+
+
+<button id="salvarDivida">
+
+Salvar
+
+</button>
+
+
+</div>
+
+
+
+
+
+
+<div id="listaDividas">
+
+
+</div>
+
+
+
+`;
+
+
+
+renderListaDividas();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function salvarDivida(){
+
+
+
+DB.dividas.push({
+
+
+
+id:
+
+gerarId(),
+
+
+
+nome:
+
+divNome.value,
+
+
+
+valor:
+
+Number(divValor.value),
+
+
+
+parcelas:
+
+Number(divParcelas.value),
+
+
+
+vencimento:
+
+divVencimento.value,
+
+
+
+status:
+
+"pendente"
+
+
+
+});
+
+
+
+salvarDados();
+
+
+
+renderFinanceiro();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function renderListaDividas(){
+
+
+
+const lista =
+
+document.getElementById(
+
+"listaDividas"
+
+);
+
+
+
+if(!lista)return;
+
+
+
+
+
+
+if(DB.dividas.length===0){
+
+
+lista.innerHTML=
+
+"<p>Nenhuma dívida cadastrada.</p>";
+
+return;
+
+
+}
+
+
+
+
+
+
+
+lista.innerHTML =
+
+
+
+DB.dividas.map(item=>`
+
+
+
+<div class="item">
+
+
+<strong>
+
+${item.nome}
+
+</strong>
+
+
+
+<p>
+
+${moeda(item.valor)}
+
+</p>
+
+
+
+<p>
+
+Parcelas: ${item.parcelas}
+
+</p>
+
+
+
+<button
+
+data-delete-divida="${item.id}">
+
+Excluir
+
+</button>
+
+
+
+</div>
+
+
+
+`).join("");
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function excluirDivida(id){
+
+
+
+DB.dividas =
+
+DB.dividas.filter(
+
+item=>
+
+item.id!==id
+
+);
+
+
+
+salvarDados();
+
+
+
+renderFinanceiro();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+//======================================
+// EVENTOS INVESTIMENTOS E DÍVIDAS
 //======================================
 
 
@@ -2876,91 +3110,6 @@ document.addEventListener(
 "click",
 
 function(e){
-
-
-
-
-
-if(e.target.id==="btnNovaDivida"){
-
-
-mostrar(
-"formDivida"
-);
-
-
-}
-
-
-
-
-if(e.target.id==="cancelarDivida"){
-
-
-esconder(
-"formDivida"
-);
-
-
-}
-
-
-
-
-if(e.target.id==="salvarDivida"){
-
-
-salvarDivida();
-
-
-}
-
-
-
-
-
-if(e.target.dataset.deldivida){
-
-
-deletarDivida(
-
-Number(e.target.dataset.deldivida)
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-if(e.target.id==="btnNovoInvestimento"){
-
-
-mostrar(
-"formInvestimento"
-);
-
-
-}
-
-
-
-
-
-if(e.target.id==="cancelarInvestimento"){
-
-
-esconder(
-"formInvestimento"
-);
-
-
-}
 
 
 
@@ -2978,12 +3127,13 @@ salvarInvestimento();
 
 
 
-if(e.target.dataset.delinvestimento){
+
+if(e.target.dataset.deleteInvestimento){
 
 
-deletarInvestimento(
+excluirInvestimento(
 
-Number(e.target.dataset.delinvestimento)
+Number(e.target.dataset.deleteInvestimento)
 
 );
 
@@ -2992,24 +3142,69 @@ Number(e.target.dataset.delinvestimento)
 
 
 
+
+
+
+
+if(e.target.id==="salvarDivida"){
+
+
+salvarDivida();
+
+
 }
 
+
+
+
+
+
+
+if(e.target.dataset.deleteDivida){
+
+
+excluirDivida(
+
+Number(e.target.dataset.deleteDivida)
+
 );
+
+
+}
+
+
+
+
+
+});
+
 //======================================
-// PARTE 5/6
-// LIMITES POR CATEGORIA
+// AUREA
+// PARTE 5/5
+// LIMITES + DESEJOS + FINALIZAÇÃO
 //======================================
 
 
+
+
+
+
+//======================================
+// LIMITES
+//======================================
 
 
 
 function renderLimites(){
 
 
+
 const container =
+
 document.getElementById(
+
 "limitesContainer"
+
 );
 
 
@@ -3036,14 +3231,14 @@ Receitas
 
 </h3>
 
-<strong>
+
+<p>
 
 ${moeda(totalReceitasMes())}
 
-</strong>
+</p>
 
 </div>
-
 
 
 
@@ -3056,15 +3251,14 @@ Despesas
 
 </h3>
 
-<strong>
+
+<p>
 
 ${moeda(totalDespesasMes())}
 
-</strong>
+</p>
 
 </div>
-
-
 
 
 
@@ -3077,34 +3271,12 @@ Dívidas
 
 </h3>
 
-<strong>
 
-${moeda(
-totalDividas()
-)}
+<p>
 
-</strong>
+${moeda(totalDividas())}
 
-</div>
-
-
-
-
-
-
-<div class="card">
-
-<h3>
-
-Investimentos
-
-</h3>
-
-<strong>
-
-${moeda(totalInvestido())}
-
-</strong>
+</p>
 
 </div>
 
@@ -3118,8 +3290,7 @@ ${moeda(totalInvestido())}
 
 
 
-
-<section class="painel">
+<div class="painel">
 
 
 <h3>
@@ -3136,7 +3307,7 @@ Adicionar Limite
 
 ${categorias.map(cat=>`
 
-<option value="${cat}">
+<option>
 
 ${cat}
 
@@ -3151,12 +3322,13 @@ ${cat}
 
 
 
-<input 
+<input
+
 id="valorLimite"
 
 type="number"
 
-placeholder="Valor limite">
+placeholder="Valor máximo">
 
 
 
@@ -3164,32 +3336,28 @@ placeholder="Valor limite">
 
 <button id="salvarLimite">
 
-
 Salvar Limite
-
 
 </button>
 
 
-
-
-</section>
-
+</div>
 
 
 
 
 
 
-<section class="painel">
+
+
+<div class="painel">
 
 
 <h3>
 
-Limites por Categoria
+Meus Limites
 
 </h3>
-
 
 
 <div id="listaLimites">
@@ -3198,7 +3366,8 @@ Limites por Categoria
 </div>
 
 
-</section>
+
+</div>
 
 
 
@@ -3206,36 +3375,10 @@ Limites por Categoria
 
 
 
+
 renderListaLimites();
 
 
-}
-
-
-
-
-
-
-
-
-//======================================
-// TOTAL DE DÍVIDAS
-//======================================
-
-
-function totalDividas(){
-
-
-return DB.dividas.reduce(
-
-(total,item)=>
-
-total + Number(item.valor),
-
-0
-
-);
-
 
 }
 
@@ -3243,13 +3386,6 @@ total + Number(item.valor),
 
 
 
-
-
-
-
-//======================================
-// SALVAR LIMITE
-//======================================
 
 
 
@@ -3258,34 +3394,27 @@ function salvarLimite(){
 
 
 const categoria =
+
 categoriaLimite.value;
 
 
 
+
 const valor =
-Number(
-valorLimite.value
-);
+
+Number(valorLimite.value);
 
 
 
-if(!valor){
 
-
-alert(
-"Digite um valor válido"
-);
-
-
-return;
-
-}
+if(!valor)return;
 
 
 
 
 
 const existente =
+
 DB.limites.find(
 
 item=>
@@ -3298,27 +3427,29 @@ item.categoria===categoria
 
 
 
+
 if(existente){
 
 
 existente.valor = valor;
 
 
-}
-
-else{
+}else{
 
 
 DB.limites.push({
 
 
-id:gerarId(),
+id:
+
+gerarId(),
 
 
 categoria,
 
 
 valor
+
 
 
 });
@@ -3347,36 +3478,11 @@ renderLimites();
 
 
 
-//======================================
-// GASTOS POR CATEGORIA
-//======================================
-
-
-
 function gastoCategoria(categoria){
 
 
-let total=0;
 
-
-
-DB.custosVariaveis
-
-.filter(item=>
-
-
-item.categoria===categoria
-
-)
-
-.forEach(item=>{
-
-
-total += Number(item.valor);
-
-
-});
-
+let total = 0;
 
 
 
@@ -3386,6 +3492,25 @@ DB.custosFixos
 
 .filter(item=>
 
+item.categoria===categoria
+
+)
+
+.forEach(item=>{
+
+
+total += Number(item.valor);
+
+
+});
+
+
+
+
+
+DB.custosVariaveis
+
+.filter(item=>
 
 item.categoria===categoria
 
@@ -3398,6 +3523,7 @@ total += Number(item.valor);
 
 
 });
+
 
 
 
@@ -3415,20 +3541,16 @@ return total;
 
 
 
-
-//======================================
-// LISTA DE LIMITES
-//======================================
-
-
-
 function renderListaLimites(){
 
 
 
 const lista =
+
 document.getElementById(
+
 "listaLimites"
+
 );
 
 
@@ -3444,7 +3566,8 @@ if(DB.limites.length===0){
 
 lista.innerHTML =
 
-"<p>Nenhum limite cadastrado.</p>";
+"<p>Nenhum limite criado.</p>";
+
 
 return;
 
@@ -3467,8 +3590,12 @@ DB.limites.map(item=>{
 const gasto =
 
 gastoCategoria(
+
 item.categoria
+
 );
+
+
 
 
 
@@ -3478,19 +3605,29 @@ const percentual =
 
 
 
-let status="normal";
+
+
+let status="";
+
+
 
 
 
 if(percentual>=100){
 
-status="excedido";
+status="🔴 Excedido";
 
 }
 
 else if(percentual>=80){
 
-status="atencao";
+status="🟡 Atenção";
+
+}
+
+else{
+
+status="🟢 Seguro";
 
 }
 
@@ -3502,25 +3639,22 @@ return `
 
 
 
-<div class="limite-card">
+<div class="item">
 
 
-
-<h4>
+<strong>
 
 ${item.categoria}
 
-</h4>
+</strong>
 
 
 
 <p>
 
-Usado:
-
 ${moeda(gasto)}
 
-/
+de
 
 ${moeda(item.valor)}
 
@@ -3528,67 +3662,23 @@ ${moeda(item.valor)}
 
 
 
-
-
-
-<div class="barra">
-
-
-<div 
-
-class="progresso ${status}"
-
-style="width:${Math.min(percentual,100)}%">
-
-</div>
-
-
-</div>
-
-
-
-
-
-
 <p>
 
-${percentual.toFixed(0)}% utilizado
+${status}
+
+-
+
+${percentual.toFixed(0)}%
 
 </p>
 
 
 
-
-
-${
-percentual>100
-
-?
-
-`<strong>
-
-⚠️ Limite excedido em 
-${moeda(gasto-item.valor)}
-
-</strong>`
-
-:
-
-""
-
-}
-
-
-
-
-
 <button
 
-data-dellimite="${item.id}">
-
+data-delete-limite="${item.id}">
 
 Excluir
-
 
 </button>
 
@@ -3616,12 +3706,7 @@ Excluir
 
 
 
-//======================================
-// EXCLUIR LIMITE
-//======================================
-
-
-function deletarLimite(id){
+function excluirLimite(id){
 
 
 
@@ -3629,7 +3714,9 @@ DB.limites =
 
 DB.limites.filter(
 
-x=>x.id!==id
+item=>
+
+item.id!==id
 
 );
 
@@ -3653,56 +3740,9 @@ renderLimites();
 
 
 
-
 //======================================
-// EVENTOS LIMITES
+// DESEJOS / METAS
 //======================================
-
-
-
-document.addEventListener(
-
-"click",
-
-function(e){
-
-
-
-if(e.target.id==="salvarLimite"){
-
-
-salvarLimite();
-
-
-}
-
-
-
-if(e.target.dataset.dellimite){
-
-
-deletarLimite(
-
-Number(e.target.dataset.dellimite)
-
-);
-
-
-}
-
-
-
-}
-
-);
-
-//======================================
-// PARTE 6/6
-// DESEJOS + FINALIZAÇÃO
-//======================================
-
-
-
 
 
 
@@ -3711,8 +3751,11 @@ function renderDesejos(){
 
 
 const container =
+
 document.getElementById(
+
 "desejosContainer"
+
 );
 
 
@@ -3724,13 +3767,13 @@ if(!container)return;
 
 
 
-const totalDesejos =
+const total =
 
 DB.desejos.reduce(
 
-(total,item)=>
+(t,item)=>
 
-total + Number(item.valor),
+t+Number(item.valor),
 
 0
 
@@ -3744,9 +3787,9 @@ const guardado =
 
 DB.desejos.reduce(
 
-(total,item)=>
+(t,item)=>
 
-total + Number(item.guardado || 0),
+t+Number(item.guardado || 0),
 
 0
 
@@ -3757,30 +3800,29 @@ total + Number(item.guardado || 0),
 
 
 
+
+
 container.innerHTML = `
-
-
 
 
 
 <div class="cards">
 
 
-
 <div class="card">
 
 <h3>
 
-Total de Desejos
+Total dos desejos
 
 </h3>
 
 
-<strong>
+<p>
 
-${moeda(totalDesejos)}
+${moeda(total)}
 
-</strong>
+</p>
 
 
 </div>
@@ -3788,43 +3830,21 @@ ${moeda(totalDesejos)}
 
 
 
-
 <div class="card">
+
 
 <h3>
 
-Já Guardado
+Já guardado
 
 </h3>
 
 
-<strong>
+<p>
 
 ${moeda(guardado)}
 
-</strong>
-
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>
-
-Falta Guardar
-
-</h3>
-
-
-<strong>
-
-${moeda(totalDesejos-guardado)}
-
-</strong>
+</p>
 
 
 </div>
@@ -3839,13 +3859,12 @@ ${moeda(totalDesejos-guardado)}
 
 
 
-
-<section class="painel">
+<div class="painel">
 
 
 <h3>
 
-Adicionar Desejo
+Novo desejo
 
 </h3>
 
@@ -3853,25 +3872,19 @@ Adicionar Desejo
 
 
 
-<input 
-id="desejoTitulo"
+<input
 
-placeholder="Nome do desejo">
+id="desejoNome"
 
-
-
-
-
-<input 
-id="desejoCategoria"
-
-placeholder="Categoria">
+placeholder="Ex: Viagem, carro, curso">
 
 
 
 
 
-<input 
+
+<input
+
 id="desejoValor"
 
 type="number"
@@ -3882,56 +3895,41 @@ placeholder="Valor da meta">
 
 
 
-<input 
-id="desejoImagem"
-
-placeholder="URL da imagem">
-
-
-
-
-
 
 <button id="salvarDesejo">
 
-
-Salvar Desejo
-
+Salvar
 
 </button>
 
 
-
-</section>
-
-
-
-
-
-
-
-<section class="painel">
-
-
-<h3>
-
-Minhas Metas
-
-</h3>
-
-
-
-
-<div id="listaDesejos">
 
 
 </div>
 
 
 
-</section>
 
 
+
+<div class="painel">
+
+
+<h3>
+
+Minhas metas
+
+</h3>
+
+
+
+<div id="listaDesejos">
+
+</div>
+
+
+
+</div>
 
 
 
@@ -3945,10 +3943,6 @@ renderListaDesejos();
 
 
 
-analisarViabilidade();
-
-
-
 }
 
 
@@ -3956,11 +3950,6 @@ analisarViabilidade();
 
 
 
-
-
-//======================================
-// SALVAR DESEJO
-//======================================
 
 
 
@@ -3971,17 +3960,14 @@ function salvarDesejo(){
 DB.desejos.push({
 
 
-id:gerarId(),
+id:
+
+gerarId(),
 
 
-titulo:
+nome:
 
-desejoTitulo.value,
-
-
-categoria:
-
-desejoCategoria.value,
+desejoNome.value,
 
 
 valor:
@@ -3989,23 +3975,13 @@ valor:
 Number(desejoValor.value),
 
 
-imagem:
+guardado:
 
-desejoImagem.value,
-
-
-guardado:0,
-
-
-dataInicio:
-
-new Date()
+0
 
 
 
 });
-
-
 
 
 
@@ -4026,20 +4002,16 @@ renderDesejos();
 
 
 
-
-//======================================
-// LISTA DESEJOS
-//======================================
-
-
-
 function renderListaDesejos(){
 
 
 
 const lista =
+
 document.getElementById(
+
 "listaDesejos"
+
 );
 
 
@@ -4050,10 +4022,11 @@ if(!lista)return;
 
 
 
+
 if(DB.desejos.length===0){
 
 
-lista.innerHTML =
+lista.innerHTML=
 
 "<p>Nenhum desejo cadastrado.</p>";
 
@@ -4061,9 +4034,6 @@ return;
 
 
 }
-
-
-
 
 
 
@@ -4079,24 +4049,7 @@ DB.desejos.map(item=>{
 
 const percentual =
 
-(item.guardado / item.valor)*100;
-
-
-
-const falta =
-
-item.valor - item.guardado;
-
-
-
-
-const meses =
-
-calcularMeses(
-falta
-);
-
-
+(item.guardado/item.valor)*100;
 
 
 
@@ -4106,45 +4059,14 @@ return `
 
 
 
-<div class="desejo-card">
+<div class="item">
 
 
+<strong>
 
-${
+${item.nome}
 
-item.imagem
-
-?
-
-`<img src="${item.imagem}" width="120">`
-
-:
-
-""
-
-}
-
-
-
-
-
-<h3>
-
-${item.titulo}
-
-</h3>
-
-
-
-
-<p>
-
-Categoria:
-
-${item.categoria || "-"}
-
-</p>
-
+</strong>
 
 
 
@@ -4153,34 +4075,6 @@ ${item.categoria || "-"}
 Meta:
 
 ${moeda(item.valor)}
-
-</p>
-
-
-
-
-
-<div class="barra">
-
-
-<div
-
-class="progresso"
-
-style="width:${Math.min(percentual,100)}%">
-
-</div>
-
-
-</div>
-
-
-
-
-
-<p>
-
-${percentual.toFixed(0)}% concluído
 
 </p>
 
@@ -4200,25 +4094,11 @@ ${moeda(item.guardado)}
 
 <p>
 
-Falta:
+${percentual.toFixed(0)}%
 
-${moeda(falta)}
-
-</p>
-
-
-
-
-<p>
-
-Estimativa:
-
-${meses}
-
-meses
+concluído
 
 </p>
-
 
 
 
@@ -4230,7 +4110,7 @@ id="aporte${item.id}"
 
 type="number"
 
-placeholder="Valor para guardar">
+placeholder="Valor">
 
 
 
@@ -4238,11 +4118,9 @@ placeholder="Valor para guardar">
 
 <button
 
-data-guardar="${item.id}">
-
+data-aporte="${item.id}">
 
 Guardar
-
 
 </button>
 
@@ -4250,14 +4128,11 @@ Guardar
 
 
 
-
 <button
 
-data-deldesejo="${item.id}">
-
+data-delete-desejo="${item.id}">
 
 Excluir
-
 
 </button>
 
@@ -4285,12 +4160,6 @@ Excluir
 
 
 
-//======================================
-// GUARDAR APORTE
-//======================================
-
-
-
 function guardarDesejo(id){
 
 
@@ -4305,13 +4174,12 @@ document.getElementById(
 
 
 
+
+
 const valor =
 
 Number(campo.value);
 
-
-
-if(!valor)return;
 
 
 
@@ -4320,9 +4188,17 @@ const desejo =
 
 DB.desejos.find(
 
-x=>x.id===id
+item=>
+
+item.id===id
 
 );
+
+
+
+
+
+if(!desejo || !valor)return;
 
 
 
@@ -4349,104 +4225,24 @@ renderDesejos();
 
 
 
-//======================================
-// CALCULAR MESES
-//======================================
+function excluirDesejo(id){
 
-
-
-function calcularMeses(valor){
-
-
-
-const capacidade =
-
-totalReceitasMes()
-
--
-
-totalDespesasMes();
-
-
-
-if(capacidade<=0){
-
-return "Indefinido";
-
-}
-
-
-
-return Math.ceil(
-
-valor / capacidade
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-//======================================
-// VIABILIDADE
-//======================================
-
-
-
-function analisarViabilidade(){
-
-
-
-const area =
-
-document.getElementById(
-"alertaDesejos"
-);
-
-
-
-if(!area)return;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-//======================================
-// EXCLUIR DESEJO
-//======================================
-
-
-
-function deletarDesejo(id){
 
 
 DB.desejos =
 
 DB.desejos.filter(
 
-x=>x.id!==id
+item=>
+
+item.id!==id
 
 );
 
 
 
 salvarDados();
+
 
 
 renderDesejos();
@@ -4464,7 +4260,7 @@ renderDesejos();
 
 
 //======================================
-// EVENTOS DESEJOS
+// EVENTOS FINAIS
 //======================================
 
 
@@ -4474,6 +4270,34 @@ document.addEventListener(
 "click",
 
 function(e){
+
+
+
+if(e.target.id==="salvarLimite"){
+
+
+salvarLimite();
+
+
+}
+
+
+
+
+
+if(e.target.dataset.deleteLimite){
+
+
+excluirLimite(
+
+Number(e.target.dataset.deleteLimite)
+
+);
+
+
+}
+
+
 
 
 
@@ -4487,15 +4311,14 @@ salvarDesejo();
 
 
 
-if(e.target.dataset.guardar){
+
+
+if(e.target.dataset.aporte){
 
 
 guardarDesejo(
 
-Number(
-e.target.dataset.guardar
-
-)
+Number(e.target.dataset.aporte)
 
 );
 
@@ -4504,15 +4327,14 @@ e.target.dataset.guardar
 
 
 
-if(e.target.dataset.deldesejo){
 
 
-deletarDesejo(
+if(e.target.dataset.deleteDesejo){
 
-Number(
-e.target.dataset.deldesejo
 
-)
+excluirDesejo(
+
+Number(e.target.dataset.deleteDesejo)
 
 );
 
@@ -4521,11 +4343,7 @@ e.target.dataset.deldesejo
 
 
 
-}
-
-);
-
-
+});
 
 
 
@@ -4534,21 +4352,13 @@ e.target.dataset.deldesejo
 
 
 //======================================
-// ATUALIZAÇÃO FINAL
+// FINALIZAÇÃO
 //======================================
 
 
-function atualizarTudo(){
 
+console.log(
 
-salvarDados();
+"AUREA carregado com sucesso."
 
-
-renderDashboard();
-
-
-}
-
-
-
-atualizarTudo();
+);
