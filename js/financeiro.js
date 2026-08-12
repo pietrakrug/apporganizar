@@ -2,19 +2,25 @@
 
 /* =========================================================
    AUREA
-   MAIN.JS
-   Controlador principal da aplicação
+   FINANCEIRO.JS
+   Módulo de receitas, despesas e custos fixos
 ========================================================= */
 
 import {
   DB,
-  salvarBanco
+  salvarBanco,
+  adicionarRegistro,
+  atualizarRegistro,
+  excluirRegistro
 } from "./database.js";
 
 import {
   moeda,
   escapar,
-  percentual
+  dataAtual,
+  formatarData,
+  valorValido,
+  campoPreenchido
 } from "./utils.js";
 
 
@@ -22,14 +28,14 @@ import {
    ESTADO
 ========================================================= */
 
-let paginaAtual = "dashboard";
+let abaFinanceiro = "despesas";
 
 
 /* =========================================================
    TOAST
 ========================================================= */
 
-function mostrarToast(mensagem) {
+function toastFinanceiro(mensagem) {
 
   const toast = document.getElementById("toast");
 
@@ -39,52 +45,43 @@ function mostrarToast(mensagem) {
   }
 
   toast.textContent = mensagem;
+
   toast.classList.add("show");
 
-  clearTimeout(window.aureaToastTimer);
+  clearTimeout(window.aureaFinanceiroToast);
 
-  window.aureaToastTimer = setTimeout(() => {
+  window.aureaFinanceiroToast = setTimeout(() => {
     toast.classList.remove("show");
   }, 2500);
 }
 
 
 /* =========================================================
-   PERÍODO SELECIONADO
+   PERÍODO
 ========================================================= */
 
-function obterMesSelecionado() {
+function obterPeriodo() {
 
-  if (!DB.config) {
-    DB.config = {};
-  }
+  const hoje = new Date();
 
-  return Number(
-    DB.config.mes ??
-    DB.config.mesAtual ??
-    new Date().getMonth()
-  );
+  return {
+    mes: Number(
+      DB.config?.mes ??
+      hoje.getMonth()
+    ),
+
+    ano: Number(
+      DB.config?.ano ??
+      hoje.getFullYear()
+    )
+  };
+
 }
 
 
-function obterAnoSelecionado() {
+function pertenceAoPeriodoFinanceiro(item) {
 
-  if (!DB.config) {
-    DB.config = {};
-  }
-
-  return Number(
-    DB.config.ano ??
-    DB.config.anoAtual ??
-    new Date().getFullYear()
-  );
-}
-
-
-function pertenceAoPeriodo(item) {
-
-  const mes = obterMesSelecionado();
-  const ano = obterAnoSelecionado();
+  const { mes, ano } = obterPeriodo();
 
   if (
     item &&
@@ -99,175 +96,203 @@ function pertenceAoPeriodo(item) {
 
   }
 
-  /*
-    Compatibilidade com registros
-    que possuem somente uma data.
-  */
 
-  const dataReferencia =
+  const data =
     item?.dataRecebimento ||
+    item?.vencimento ||
     item?.dataPagamento ||
-    item?.data ||
-    item?.vencimento;
+    item?.data;
 
-  if (dataReferencia) {
-
-    const data = new Date(
-      dataReferencia + (
-        String(dataReferencia).length === 10
-          ? "T00:00:00"
-          : ""
-      )
-    );
-
-    if (!Number.isNaN(data.getTime())) {
-
-      return (
-        data.getMonth() === mes &&
-        data.getFullYear() === ano
-      );
-
-    }
-
+  if (!data) {
+    return false;
   }
 
-  return false;
-}
+  const valor = new Date(
+    String(data).length === 10
+      ? `${data}T00:00:00`
+      : data
+  );
 
-
-/* =========================================================
-   RECEITAS
-========================================================= */
-
-function receitasDoMes() {
-
-  return (DB.receitas || [])
-    .filter(pertenceAoPeriodo)
-    .reduce(
-      (total, item) =>
-        total + Number(item.valor || 0),
-      0
-    );
-}
-
-
-/* =========================================================
-   DESPESAS
-========================================================= */
-
-function despesasDoMes() {
-
-  return (DB.despesas || [])
-    .filter(pertenceAoPeriodo)
-    .reduce(
-      (total, item) =>
-        total + Number(item.valor || 0),
-      0
-    );
-}
-
-
-/* =========================================================
-   INVESTIMENTOS
-========================================================= */
-
-function investimentosDoMes() {
-
-  /*
-    Aqui temos dois conceitos diferentes:
-
-    1. patrimônio total existente
-    2. aportes realizados no mês
-
-    Por enquanto o dashboard mostra
-    os investimentos registrados no período.
-  */
-
-  return (DB.investimentos || [])
-    .filter(pertenceAoPeriodo)
-    .reduce(
-      (total, item) =>
-        total + Number(item.valor || 0),
-      0
-    );
-}
-
-
-/* =========================================================
-   SALDO
-========================================================= */
-
-function saldoDoMes() {
+  if (Number.isNaN(valor.getTime())) {
+    return false;
+  }
 
   return (
-    receitasDoMes() -
-    despesasDoMes()
+    valor.getMonth() === mes &&
+    valor.getFullYear() === ano
   );
 
 }
 
 
 /* =========================================================
-   ECONOMIA
+   FORMATAÇÃO
 ========================================================= */
 
-function percentualEconomizado() {
+function obterDataInput(data) {
 
-  const receitas = receitasDoMes();
-
-  if (receitas <= 0) {
-    return 0;
+  if (!data) {
+    return "";
   }
 
-  return (
-    saldoDoMes() /
-    receitas
-  ) * 100;
+  const valor = new Date(
+    String(data).length === 10
+      ? `${data}T00:00:00`
+      : data
+  );
+
+  if (Number.isNaN(valor.getTime())) {
+    return "";
+  }
+
+  const ano = valor.getFullYear();
+
+  const mes = String(
+    valor.getMonth() + 1
+  ).padStart(2, "0");
+
+  const dia = String(
+    valor.getDate()
+  ).padStart(2, "0");
+
+  return `${ano}-${mes}-${dia}`;
 
 }
 
 
 /* =========================================================
-   GASTOS POR CATEGORIA
+   CÁLCULOS
 ========================================================= */
 
-function gastosPorCategoria() {
+function receitasFinanceiro() {
 
-  const categorias = {};
-
-  (DB.despesas || [])
-    .filter(pertenceAoPeriodo)
-    .forEach(item => {
-
-      const categoria =
-        item.categoria || "Outros";
-
-      if (!categorias[categoria]) {
-        categorias[categoria] = 0;
-      }
-
-      categorias[categoria] +=
-        Number(item.valor || 0);
-
-    });
-
-  return categorias;
-}
-
-
-function gastoDaCategoria(categoria) {
-
-  return (DB.despesas || [])
-    .filter(pertenceAoPeriodo)
-    .filter(
-      item =>
-        item.categoria === categoria
-    )
+  return (DB.receitas || [])
+    .filter(pertenceAoPeriodoFinanceiro)
     .reduce(
       (total, item) =>
         total + Number(item.valor || 0),
       0
     );
+
+}
+
+
+function despesasFinanceiro() {
+
+  return (DB.despesas || [])
+    .filter(pertenceAoPeriodoFinanceiro)
+    .reduce(
+      (total, item) =>
+        total + Number(item.valor || 0),
+      0
+    );
+
+}
+
+
+function saldoFinanceiro() {
+
+  return (
+    receitasFinanceiro() -
+    despesasFinanceiro()
+  );
+
+}
+
+
+function contasPendentes() {
+
+  return (DB.despesas || [])
+    .filter(pertenceAoPeriodoFinanceiro)
+    .filter(item =>
+      item.status !== "paga"
+    );
+
+}
+
+
+function custosFixosAtivos() {
+
+  return (DB.custosFixos || [])
+    .filter(item =>
+      item.ativo !== false
+    );
+
+}
+
+
+/* =========================================================
+   CATEGORIAS
+========================================================= */
+
+const categoriasReceita = [
+  "Salário",
+  "Pró-labore",
+  "Aluguel recebido",
+  "Comissão",
+  "Renda extra",
+  "Investimentos",
+  "Outros"
+];
+
+
+const categoriasDespesa = [
+  "Moradia",
+  "Alimentação",
+  "Transporte",
+  "Educação",
+  "Saúde",
+  "Lazer",
+  "Delivery",
+  "Academia",
+  "Contas da Casa",
+  "Internet/Telefone",
+  "Vestuário",
+  "Beleza",
+  "Pets",
+  "Assinaturas",
+  "Outros"
+];
+
+
+const formasPagamento = [
+  "Pix",
+  "Cartão",
+  "Cartão de crédito",
+  "Cartão de débito",
+  "Dinheiro",
+  "Boleto",
+  "Transferência",
+  "Débito automático",
+  "Outro"
+];
+
+
+/* =========================================================
+   SELECT DE CATEGORIAS
+========================================================= */
+
+function gerarOptions(lista, selecionada = "") {
+
+  return lista
+    .map(item => {
+
+      const selected =
+        item === selecionada
+          ? "selected"
+          : "";
+
+      return `
+        <option
+          value="${escapar(item)}"
+          ${selected}
+        >
+          ${escapar(item)}
+        </option>
+      `;
+
+    })
+    .join("");
 
 }
 
@@ -276,27 +301,24 @@ function gastoDaCategoria(categoria) {
    CARDS
 ========================================================= */
 
-function renderCards() {
+function renderResumoFinanceiro() {
 
   const receitas =
-    receitasDoMes();
+    receitasFinanceiro();
 
   const despesas =
-    despesasDoMes();
+    despesasFinanceiro();
 
   const saldo =
-    saldoDoMes();
+    saldoFinanceiro();
 
-  const investimentos =
-    investimentosDoMes();
+  const pendentes =
+    contasPendentes().reduce(
+      (total, item) =>
+        total + Number(item.valor || 0),
+      0
+    );
 
-  const economia =
-    percentualEconomizado();
-
-  const classeSaldo =
-    saldo >= 0
-      ? "green"
-      : "red";
 
   return `
 
@@ -305,7 +327,7 @@ function renderCards() {
       <div class="card metric">
 
         <small>
-          Receitas do mês
+          Receitas
         </small>
 
         <strong class="green">
@@ -322,7 +344,7 @@ function renderCards() {
       <div class="card metric">
 
         <small>
-          Despesas do mês
+          Despesas
         </small>
 
         <strong class="red">
@@ -339,10 +361,12 @@ function renderCards() {
       <div class="card metric">
 
         <small>
-          Saldo disponível
+          Saldo
         </small>
 
-        <strong class="${classeSaldo}">
+        <strong
+          class="${saldo >= 0 ? "green" : "red"}"
+        >
           ${moeda(saldo)}
         </strong>
 
@@ -356,32 +380,15 @@ function renderCards() {
       <div class="card metric">
 
         <small>
-          Investimentos
+          Contas pendentes
         </small>
 
         <strong class="purple">
-          ${moeda(investimentos)}
+          ${moeda(pendentes)}
         </strong>
 
         <span class="icon">
-          📈
-        </span>
-
-      </div>
-
-
-      <div class="card metric">
-
-        <small>
-          Renda economizada
-        </small>
-
-        <strong class="${economia >= 0 ? "green" : "red"}">
-          ${economia.toFixed(1)}%
-        </strong>
-
-        <span class="icon">
-          💎
+          📋
         </span>
 
       </div>
@@ -389,564 +396,376 @@ function renderCards() {
     </div>
 
   `;
+
 }
 
 
 /* =========================================================
-   ALERTAS
+   ABAS
 ========================================================= */
 
-function gerarAlertas() {
+function renderAbas() {
 
-  const alertas = [];
+  return `
 
-  const receitas =
-    receitasDoMes();
+    <div
+      class="panel"
+      style="padding:0;"
+    >
+
+      <div
+        class="finance-tabs"
+        style="
+          display:flex;
+          gap:8px;
+          padding:16px;
+          border-bottom:1px solid rgba(0,0,0,.08);
+          flex-wrap:wrap;
+        "
+      >
+
+        <button
+          type="button"
+          class="finance-tab ${
+            abaFinanceiro === "despesas"
+              ? "active"
+              : ""
+          }"
+          data-finance-tab="despesas"
+        >
+          💳 Despesas
+        </button>
+
+
+        <button
+          type="button"
+          class="finance-tab ${
+            abaFinanceiro === "receitas"
+              ? "active"
+              : ""
+          }"
+          data-finance-tab="receitas"
+        >
+          💰 Receitas
+        </button>
+
+
+        <button
+          type="button"
+          class="finance-tab ${
+            abaFinanceiro === "fixos"
+              ? "active"
+              : ""
+          }"
+          data-finance-tab="fixos"
+        >
+          🔄 Custos fixos
+        </button>
+
+      </div>
+
+
+      <div
+        id="financeTabContent"
+        style="padding:20px;"
+      >
+        ${renderConteudoAba()}
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   CONTEÚDO DAS ABAS
+========================================================= */
+
+function renderConteudoAba() {
+
+  if (abaFinanceiro === "receitas") {
+    return renderReceitas();
+  }
+
+  if (abaFinanceiro === "fixos") {
+    return renderCustosFixos();
+  }
+
+  return renderDespesas();
+
+}
+
+
+/* =========================================================
+   DESPESAS
+========================================================= */
+
+function renderDespesas() {
 
   const despesas =
-    despesasDoMes();
-
-  const saldo =
-    saldoDoMes();
-
-
-  /* -------------------------------------------------------
-     SALDO NEGATIVO
-  ------------------------------------------------------- */
-
-  if (saldo < 0) {
-
-    alertas.push(`
-      <div class="alert danger">
-        ⚠️ Seu saldo mensal está negativo em
-        <strong>${moeda(Math.abs(saldo))}</strong>.
-      </div>
-    `);
-
-  }
-
-
-  /* -------------------------------------------------------
-     USO DA RENDA
-  ------------------------------------------------------- */
-
-  if (receitas > 0) {
-
-    const percentualUso =
-      despesas /
-      receitas *
-      100;
-
-    if (percentualUso >= 100) {
-
-      alertas.push(`
-        <div class="alert danger">
-          🚨 Suas despesas já ultrapassaram sua renda.
-        </div>
-      `);
-
-    }
-
-    else if (percentualUso >= 80) {
-
-      alertas.push(`
-        <div class="alert warning">
-          ⚠️ Você já utilizou
-          <strong>${percentualUso.toFixed(1)}%</strong>
-          da sua renda.
-        </div>
-      `);
-
-    }
-
-  }
-
-
-  /* -------------------------------------------------------
-     LIMITES
-  ------------------------------------------------------- */
-
-  (DB.limites || [])
-    .filter(pertenceAoPeriodo)
-    .forEach(item => {
-
-      const limite =
-        Number(item.limite || 0);
-
-      if (limite <= 0) {
-        return;
-      }
-
-      const gasto =
-        gastoDaCategoria(
-          item.categoria
-        );
-
-      const uso =
-        gasto / limite * 100;
-
-
-      if (uso >= 100) {
-
-        alertas.push(`
-          <div class="alert danger">
-            🚨 O limite de
-            <strong>${escapar(item.categoria)}</strong>
-            foi ultrapassado.
-            Gasto: ${moeda(gasto)}
-            / Limite: ${moeda(limite)}
-          </div>
-        `);
-
-      }
-
-      else if (uso >= 80) {
-
-        alertas.push(`
-          <div class="alert warning">
-            ⚠️ Você já utilizou
-            <strong>${uso.toFixed(1)}%</strong>
-            do limite de
-            <strong>${escapar(item.categoria)}</strong>.
-          </div>
-        `);
-
-      }
-
-    });
-
-
-  /* -------------------------------------------------------
-     CONTAS PRÓXIMAS DO VENCIMENTO
-  ------------------------------------------------------- */
-
-  const hoje =
-    new Date();
-
-  (DB.despesas || [])
-    .filter(pertenceAoPeriodo)
-    .forEach(despesa => {
-
-      if (
-        despesa.status === "paga" ||
-        !despesa.vencimento
-      ) {
-        return;
-      }
-
-      const vencimento =
-        new Date(
-          despesa.vencimento +
-          "T00:00:00"
-        );
-
-      if (Number.isNaN(vencimento.getTime())) {
-        return;
-      }
-
-      const diferenca =
-        Math.ceil(
-          (
-            vencimento -
-            hoje
-          ) /
-          (
-            1000 *
-            60 *
-            60 *
-            24
-          )
-        );
-
-
-      if (
-        diferenca >= 0 &&
-        diferenca <= 3
-      ) {
-
-        alertas.push(`
-          <div class="alert warning">
-            ⚠️ A conta
-            <strong>${escapar(despesa.descricao)}</strong>
-            vence
-            ${
-              diferenca === 0
-                ? "hoje"
-                : `em ${diferenca} dia${diferenca > 1 ? "s" : ""}`
-            }.
-          </div>
-        `);
-
-      }
-
-    });
-
-
-  /* -------------------------------------------------------
-     METAS
-  ------------------------------------------------------- */
-
-  (DB.desejos || [])
-    .filter(
-      item =>
-        Number(item.guardado || 0) <
-        Number(item.valor || 0)
-    )
-    .slice(0, 2)
-    .forEach(meta => {
-
-      const falta =
-        Number(meta.valor || 0) -
-        Number(meta.guardado || 0);
-
-      alertas.push(`
-        <div class="alert">
-          🎯 Faltam
-          <strong>${moeda(falta)}</strong>
-          para alcançar
-          <strong>${escapar(meta.nome)}</strong>.
-        </div>
-      `);
-
-    });
-
-
-  /* -------------------------------------------------------
-     ELOGIO
-  ------------------------------------------------------- */
-
-  if (
-    receitas > 0 &&
-    saldo > 0 &&
-    despesas / receitas < 0.5
-  ) {
-
-    alertas.push(`
-      <div class="alert success">
-        ✅ Excelente! Você está mantendo suas despesas
-        abaixo de 50% da renda neste mês.
-      </div>
-    `);
-
-  }
-
-
-  /* -------------------------------------------------------
-     SEM ALERTAS
-  ------------------------------------------------------- */
-
-  if (alertas.length === 0) {
-
-    return `
-      <div class="alert success">
-        ✅ Sua organização financeira está em dia.
-      </div>
-    `;
-
-  }
-
-  return alertas.join("");
-
-}
-
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-function renderDashboard() {
-
-  const categorias =
-    gastosPorCategoria();
-
-  const total =
-    despesasDoMes();
-
-  const percentual =
-    percentualEconomizado();
-
-
-  const categoriasHTML =
-    Object.entries(categorias)
+    (DB.despesas || [])
+      .filter(pertenceAoPeriodoFinanceiro)
       .sort(
         (a, b) =>
-          b[1] - a[1]
-      )
-      .map(
-        ([categoria, valor]) => {
+          String(
+            a.vencimento || ""
+          ).localeCompare(
+            String(
+              b.vencimento || ""
+            )
+          )
+      );
 
-          const porcentagem =
-            total > 0
-              ? (
-                  valor /
-                  total
-                ) * 100
-              : 0;
 
-          return `
+  const linhas =
+    despesas.map(despesa => {
 
-            <div
-              class="legend"
-              data-categoria="${escapar(categoria)}"
-              style="cursor:pointer;"
-            >
+      const status =
+        despesa.status || "pendente";
 
-              <span>
+      let classeStatus =
+        "warning";
 
-                <label>
+      if (status === "paga") {
+        classeStatus = "success";
+      }
 
-                  <i
-                    class="dot"
-                  ></i>
+      if (status === "vencida") {
+        classeStatus = "danger";
+      }
 
-                  ${escapar(categoria)}
 
-                </label>
-
-                <strong>
-                  ${moeda(valor)}
-                </strong>
-
-              </span>
-
-
-              <div class="progress">
-
-                <i
-                  style="
-                    width:${Math.min(
-                      porcentagem,
-                      100
-                    )}%
-                  "
-                ></i>
-
-              </div>
-
-            </div>
-
-          `;
-
-        }
-      )
-      .join("");
-
-
-  return `
-
-    <div class="page">
-
-      ${renderCards()}
-
-
-      <div class="grid-2">
-
-
-        <!-- ALERTAS -->
-
-        <div class="panel">
-
-          <h3>
-            🔔 Alertas inteligentes
-          </h3>
-
-          <div class="alerts-list">
-
-            ${gerarAlertas()}
-
-          </div>
-
-        </div>
-
-
-        <!-- CATEGORIAS -->
-
-        <div class="panel">
-
-          <h3>
-            📊 Gastos por categoria
-          </h3>
-
-          ${
-            categoriasHTML ||
-
-            `
-              <div class="empty">
-
-                Nenhuma despesa cadastrada
-                neste período.
-
-              </div>
-            `
-          }
-
-        </div>
-
-      </div>
-
-
-      <!-- RESUMO -->
-
-      <div class="panel">
-
-        <div class="panel-header">
-
-          <h3>
-            Resumo financeiro
-          </h3>
-
-          <span class="muted">
-
-            ${percentual.toFixed(1)}%
-            da renda economizada
-
-          </span>
-
-        </div>
-
-
-        <div class="chart">
-
-
-          <div class="bar-box">
-
-            <div
-              class="bar"
-              style="height:90%"
-            ></div>
-
-            <small>
-              Receitas
-            </small>
-
-          </div>
-
-
-          <div class="bar-box">
-
-            <div
-              class="bar expense"
-              style="
-                height:${Math.max(
-                  6,
-                  Math.min(
-                    90,
-                    receitasDoMes() > 0
-                      ? despesasDoMes() /
-                        receitasDoMes() *
-                        90
-                      : 6
-                  )
-                )}%
-              "
-            ></div>
-
-            <small>
-              Despesas
-            </small>
-
-          </div>
-
-
-          <div class="bar-box">
-
-            <div
-              class="bar"
-              style="
-                height:${Math.max(
-                  6,
-                  Math.min(
-                    90,
-                    receitasDoMes() > 0
-                      ? Math.max(
-                          0,
-                          saldoDoMes()
-                        ) /
-                        receitasDoMes() *
-                        90
-                      : 6
-                  )
-                )}%
-              "
-            ></div>
-
-            <small>
-              Saldo
-            </small>
-
-          </div>
-
-
-        </div>
-
-      </div>
-
-
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================================
-   PÁGINA EM CONSTRUÇÃO
-========================================================= */
-
-function renderPaginaEmConstrucao(
-  titulo,
-  descricao,
-  icone
-) {
-
-  return `
-
-    <div class="page">
-
-      ${renderCards()}
-
-      <div class="panel">
+      return `
 
         <div
+          class="finance-row"
           style="
-            text-align:center;
-            padding:60px 20px;
+            display:grid;
+            grid-template-columns:
+              1.5fr
+              1fr
+              .8fr
+              .8fr
+              1fr
+              auto;
+            gap:16px;
+            align-items:center;
+            padding:16px 0;
+            border-bottom:1px solid rgba(0,0,0,.06);
           "
         >
 
-          <div
-            style="
-              font-size:48px;
-              margin-bottom:20px;
-            "
-          >
-            ${icone}
+          <div>
+
+            <strong>
+              ${escapar(despesa.descricao)}
+            </strong>
+
+            <small
+              class="muted"
+              style="display:block;margin-top:4px;"
+            >
+              ${escapar(
+                despesa.categoria || "Outros"
+              )}
+            </small>
+
           </div>
 
 
-          <h3>
-            ${titulo}
-          </h3>
+          <strong>
+            ${moeda(despesa.valor)}
+          </strong>
 
 
-          <p class="muted">
-            ${descricao}
-          </p>
+          <span>
+            ${formatarData(
+              despesa.vencimento
+            )}
+          </span>
+
+
+          <span>
+            ${escapar(
+              despesa.tipo || "Variável"
+            )}
+          </span>
+
+
+          <span
+            class="alert ${classeStatus}"
+            style="
+              margin:0;
+              padding:6px 10px;
+              display:inline-block;
+              text-align:center;
+            "
+          >
+            ${escapar(
+              capitalizarStatus(status)
+            )}
+          </span>
 
 
           <div
-            class="alert"
-            style="margin-top:25px;"
+            style="
+              display:flex;
+              gap:6px;
+              justify-content:flex-end;
+            "
           >
-            🚧 Esta área será construída
-            nos próximos módulos do AUREA.
+
+            ${
+              status !== "paga"
+                ? `
+                  <button
+                    type="button"
+                    class="small-btn"
+                    data-action="pagar-despesa"
+                    data-id="${escapar(despesa.id)}"
+                    title="Marcar como paga"
+                  >
+                    ✓
+                  </button>
+                `
+                : ""
+            }
+
+
+            <button
+              type="button"
+              class="small-btn"
+              data-action="editar-despesa"
+              data-id="${escapar(despesa.id)}"
+              title="Editar"
+            >
+              ✎
+            </button>
+
+
+            <button
+              type="button"
+              class="small-btn danger-btn"
+              data-action="excluir-despesa"
+              data-id="${escapar(despesa.id)}"
+              title="Excluir"
+            >
+              ×
+            </button>
+
           </div>
 
         </div>
 
+      `;
+
+    })
+    .join("");
+
+
+  return `
+
+    <div class="panel-header">
+
+      <div>
+
+        <h3>
+          Despesas do mês
+        </h3>
+
+        <p class="muted">
+          Registre e acompanhe seus gastos.
+        </p>
+
       </div>
 
+
+      <button
+        type="button"
+        class="primary-btn"
+        data-action="nova-despesa"
+      >
+        + Nova despesa
+      </button>
+
     </div>
+
+
+    ${
+      despesas.length === 0
+
+        ? `
+
+          <div
+            class="empty"
+            style="padding:50px 20px;"
+          >
+            Nenhuma despesa cadastrada
+            neste período.
+          </div>
+
+        `
+
+        : `
+
+          <div
+            class="finance-list"
+            style="margin-top:20px;"
+          >
+
+            <div
+              class="finance-row finance-header"
+              style="
+                display:grid;
+                grid-template-columns:
+                  1.5fr
+                  1fr
+                  .8fr
+                  .8fr
+                  1fr
+                  auto;
+                gap:16px;
+                padding:10px 0;
+                font-size:12px;
+                text-transform:uppercase;
+                opacity:.6;
+              "
+            >
+
+              <span>
+                Descrição
+              </span>
+
+              <span>
+                Valor
+              </span>
+
+              <span>
+                Vencimento
+              </span>
+
+              <span>
+                Tipo
+              </span>
+
+              <span>
+                Status
+              </span>
+
+              <span>
+                Ações
+              </span>
+
+            </div>
+
+            ${linhas}
+
+          </div>
+
+        `
+    }
 
   `;
 
@@ -954,179 +773,917 @@ function renderPaginaEmConstrucao(
 
 
 /* =========================================================
-   PÁGINAS
+   RECEITAS
 ========================================================= */
 
-const paginas = {
+function renderReceitas() {
 
-  dashboard: {
-
-    titulo: "Dashboard",
-
-    subtitulo:
-      "Acompanhe sua evolução financeira",
-
-    render:
-      renderDashboard
-
-  },
-
-
-  financeiro: {
-
-    titulo:
-      "Meu Financeiro",
-
-    subtitulo:
-      "Controle suas receitas e despesas",
-
-    render: () =>
-      renderPaginaEmConstrucao(
-        "Meu Financeiro",
-        "Aqui ficarão suas receitas, despesas e custos fixos.",
-        "💳"
-      )
-
-  },
+  const receitas =
+    (DB.receitas || [])
+      .filter(pertenceAoPeriodoFinanceiro)
+      .sort(
+        (a, b) =>
+          String(
+            b.dataRecebimento || ""
+          ).localeCompare(
+            String(
+              a.dataRecebimento || ""
+            )
+          )
+      );
 
 
-  planejamento: {
+  const linhas =
+    receitas.map(receita => {
 
-    titulo:
-      "Planejamento",
+      return `
 
-    subtitulo:
-      "Prepare seus próximos meses",
+        <div
+          class="finance-row"
+          style="
+            display:grid;
+            grid-template-columns:
+              1.5fr
+              1fr
+              1fr
+              .8fr
+              auto;
+            gap:16px;
+            align-items:center;
+            padding:16px 0;
+            border-bottom:1px solid rgba(0,0,0,.06);
+          "
+        >
 
-    render: () =>
-      renderPaginaEmConstrucao(
-        "Planejamento",
-        "Aqui você poderá planejar receitas, despesas, investimentos e metas.",
-        "📋"
-      )
+          <div>
 
-  },
+            <strong>
+              ${escapar(receita.descricao)}
+            </strong>
 
+            <small
+              class="muted"
+              style="display:block;margin-top:4px;"
+            >
+              ${escapar(
+                receita.categoria || "Outros"
+              )}
+            </small>
 
-  tarefas: {
-
-    titulo:
-      "Tarefas",
-
-    subtitulo:
-      "Organize suas tarefas financeiras e pessoais",
-
-    render: () =>
-      renderPaginaEmConstrucao(
-        "Tarefas",
-        "Aqui ficará seu checklist diário e recorrente.",
-        "✓"
-      )
-
-  },
-
-
-  relatorios: {
-
-    titulo:
-      "Relatórios",
-
-    subtitulo:
-      "Compare sua evolução financeira",
-
-    render: () =>
-      renderPaginaEmConstrucao(
-        "Relatórios",
-        "Aqui ficarão os comparativos mensais e indicadores históricos.",
-        "📊"
-      )
-
-  },
+          </div>
 
 
-  investimentos: {
-
-    titulo:
-      "Investimentos",
-
-    subtitulo:
-      "Acompanhe seu patrimônio e seus aportes",
-
-    render: () =>
-      renderPaginaEmConstrucao(
-        "Investimentos",
-        "Aqui ficará o controle dos seus investimentos.",
-        "📈"
-      )
-
-  },
+          <strong class="green">
+            ${moeda(receita.valor)}
+          </strong>
 
 
-  limites: {
-
-    titulo:
-      "Limites",
-
-    subtitulo:
-      "Defina limites para seus gastos",
-
-    render: () =>
-      renderPaginaEmConstrucao(
-        "Limites",
-        "Aqui ficarão os limites mensais por categoria.",
-        "🎯"
-      )
-
-  },
+          <span>
+            ${formatarData(
+              receita.dataRecebimento
+            )}
+          </span>
 
 
-  desejos: {
+          <span>
+            ${escapar(
+              receita.recorrencia || "Única"
+            )}
+          </span>
 
-    titulo:
-      "Desejos",
 
-    subtitulo:
-      "Transforme seus desejos em planos financeiros",
+          <div
+            style="
+              display:flex;
+              gap:6px;
+              justify-content:flex-end;
+            "
+          >
 
-    render: () =>
-      renderPaginaEmConstrucao(
-        "Desejos",
-        "Aqui ficarão suas metas de compra e planos de ação.",
-        "✨"
-      )
+            <button
+              type="button"
+              class="small-btn"
+              data-action="editar-receita"
+              data-id="${escapar(receita.id)}"
+              title="Editar"
+            >
+              ✎
+            </button>
 
-  }
 
-};
+            <button
+              type="button"
+              class="small-btn danger-btn"
+              data-action="excluir-receita"
+              data-id="${escapar(receita.id)}"
+              title="Excluir"
+            >
+              ×
+            </button>
+
+          </div>
+
+        </div>
+
+      `;
+
+    })
+    .join("");
+
+
+  return `
+
+    <div class="panel-header">
+
+      <div>
+
+        <h3>
+          Receitas do mês
+        </h3>
+
+        <p class="muted">
+          Registre todas as entradas de dinheiro.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="primary-btn"
+        data-action="nova-receita"
+      >
+        + Nova receita
+      </button>
+
+    </div>
+
+
+    ${
+      receitas.length === 0
+
+        ? `
+
+          <div
+            class="empty"
+            style="padding:50px 20px;"
+          >
+            Nenhuma receita cadastrada
+            neste período.
+          </div>
+
+        `
+
+        : `
+
+          <div
+            class="finance-list"
+            style="margin-top:20px;"
+          >
+
+            <div
+              class="finance-row finance-header"
+              style="
+                display:grid;
+                grid-template-columns:
+                  1.5fr
+                  1fr
+                  1fr
+                  .8fr
+                  auto;
+                gap:16px;
+                padding:10px 0;
+                font-size:12px;
+                text-transform:uppercase;
+                opacity:.6;
+              "
+            >
+
+              <span>
+                Descrição
+              </span>
+
+              <span>
+                Valor
+              </span>
+
+              <span>
+                Recebimento
+              </span>
+
+              <span>
+                Recorrência
+              </span>
+
+              <span>
+                Ações
+              </span>
+
+            </div>
+
+            ${linhas}
+
+          </div>
+
+        `
+    }
+
+  `;
+
+}
 
 
 /* =========================================================
-   CARREGAR PÁGINA
+   CUSTOS FIXOS
 ========================================================= */
 
-function carregarPagina(nome) {
+function renderCustosFixos() {
 
-  if (!paginas[nome]) {
-    nome = "dashboard";
+  const custos =
+    [...(DB.custosFixos || [])]
+      .sort(
+        (a, b) =>
+          Number(a.diaVencimento || 0) -
+          Number(b.diaVencimento || 0)
+      );
+
+
+  const linhas =
+    custos.map(custo => {
+
+      const ativo =
+        custo.ativo !== false;
+
+
+      return `
+
+        <div
+          class="finance-row"
+          style="
+            display:grid;
+            grid-template-columns:
+              1.5fr
+              1fr
+              .8fr
+              1fr
+              .7fr
+              auto;
+            gap:16px;
+            align-items:center;
+            padding:16px 0;
+            border-bottom:1px solid rgba(0,0,0,.06);
+          "
+        >
+
+          <div>
+
+            <strong>
+              ${escapar(custo.nome)}
+            </strong>
+
+            <small
+              class="muted"
+              style="display:block;margin-top:4px;"
+            >
+              ${escapar(
+                custo.categoria || "Outros"
+              )}
+            </small>
+
+          </div>
+
+
+          <strong>
+            ${moeda(custo.valor)}
+          </strong>
+
+
+          <span>
+            Dia ${Number(
+              custo.diaVencimento || 0
+            )}
+          </span>
+
+
+          <span>
+            ${escapar(
+              custo.formaPagamento || "-"
+            )}
+          </span>
+
+
+          <span>
+            ${
+              ativo
+                ? "Ativo"
+                : "Inativo"
+            }
+          </span>
+
+
+          <div
+            style="
+              display:flex;
+              gap:6px;
+              justify-content:flex-end;
+            "
+          >
+
+            <button
+              type="button"
+              class="small-btn"
+              data-action="alternar-fixo"
+              data-id="${escapar(custo.id)}"
+              title="${
+                ativo
+                  ? "Desativar"
+                  : "Ativar"
+              }"
+            >
+              ${ativo ? "⏸" : "▶"}
+            </button>
+
+
+            <button
+              type="button"
+              class="small-btn"
+              data-action="editar-fixo"
+              data-id="${escapar(custo.id)}"
+              title="Editar"
+            >
+              ✎
+            </button>
+
+
+            <button
+              type="button"
+              class="small-btn danger-btn"
+              data-action="excluir-fixo"
+              data-id="${escapar(custo.id)}"
+              title="Excluir"
+            >
+              ×
+            </button>
+
+          </div>
+
+        </div>
+
+      `;
+
+    })
+    .join("");
+
+
+  return `
+
+    <div class="panel-header">
+
+      <div>
+
+        <h3>
+          Custos fixos
+        </h3>
+
+        <p class="muted">
+          Contas recorrentes que fazem parte
+          do seu orçamento mensal.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="primary-btn"
+        data-action="novo-fixo"
+      >
+        + Novo custo fixo
+      </button>
+
+    </div>
+
+
+    ${
+      custos.length === 0
+
+        ? `
+
+          <div
+            class="empty"
+            style="padding:50px 20px;"
+          >
+            Nenhum custo fixo cadastrado.
+          </div>
+
+        `
+
+        : `
+
+          <div
+            class="finance-list"
+            style="margin-top:20px;"
+          >
+
+            <div
+              class="finance-row finance-header"
+              style="
+                display:grid;
+                grid-template-columns:
+                  1.5fr
+                  1fr
+                  .8fr
+                  1fr
+                  .7fr
+                  auto;
+                gap:16px;
+                padding:10px 0;
+                font-size:12px;
+                text-transform:uppercase;
+                opacity:.6;
+              "
+            >
+
+              <span>
+                Conta
+              </span>
+
+              <span>
+                Valor
+              </span>
+
+              <span>
+                Vencimento
+              </span>
+
+              <span>
+                Pagamento
+              </span>
+
+              <span>
+                Status
+              </span>
+
+              <span>
+                Ações
+              </span>
+
+            </div>
+
+            ${linhas}
+
+          </div>
+
+        `
+    }
+
+  `;
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function capitalizarStatus(status) {
+
+  const mapa = {
+    paga: "Paga",
+    pendente: "Pendente",
+    vencida: "Vencida"
+  };
+
+  return mapa[status] || "Pendente";
+
+}
+
+
+/* =========================================================
+   MODAL BASE
+========================================================= */
+
+function abrirModalFinanceiro(conteudo) {
+
+  fecharModalFinanceiro();
+
+
+  const modal =
+    document.createElement("div");
+
+  modal.id =
+    "aureaFinanceModal";
+
+  modal.innerHTML = `
+
+    <div
+      class="aurea-modal-overlay"
+      data-modal-close="true"
+    >
+
+      <div
+        class="aurea-modal"
+        role="dialog"
+        aria-modal="true"
+        onclick="event.stopPropagation()"
+      >
+
+        ${conteudo}
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document.body.appendChild(modal);
+
+
+  const overlay =
+    modal.querySelector(
+      ".aurea-modal-overlay"
+    );
+
+
+  if (overlay) {
+
+    overlay.addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target === overlay
+        ) {
+
+          fecharModalFinanceiro();
+
+        }
+
+      }
+    );
+
   }
 
-  paginaAtual = nome;
+}
 
 
-  const conteudo =
-    document.getElementById("content");
+function fecharModalFinanceiro() {
 
-  const titulo =
-    document.getElementById("pageTitle");
+  const modal =
+    document.getElementById(
+      "aureaFinanceModal"
+    );
 
-  const subtitulo =
-    document.getElementById("pageSubtitle");
+  if (modal) {
+    modal.remove();
+  }
+
+}
 
 
-  if (!conteudo) {
+/* =========================================================
+   FORMULÁRIO DE DESPESA
+========================================================= */
 
-    console.error(
-      "Elemento #content não encontrado."
+function abrirFormularioDespesa(id = null) {
+
+  const existente =
+    id
+      ? (DB.despesas || [])
+          .find(item => item.id === id)
+      : null;
+
+
+  const { mes, ano } =
+    obterPeriodo();
+
+
+  const dataPadrao =
+    existente?.vencimento ||
+    `${ano}-${String(
+      mes + 1
+    ).padStart(2, "0")}-01`;
+
+
+  abrirModalFinanceiro(`
+
+    <div class="modal-header">
+
+      <div>
+
+        <h3>
+          ${
+            existente
+              ? "Editar despesa"
+              : "Nova despesa"
+          }
+        </h3>
+
+        <p class="muted">
+          Cadastre um gasto financeiro.
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        class="small-btn"
+        data-action="fechar-modal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form
+      id="formDespesa"
+      style="
+        display:grid;
+        gap:16px;
+        margin-top:20px;
+      "
+    >
+
+      <input
+        type="hidden"
+        name="id"
+        value="${escapar(
+          existente?.id || ""
+        )}"
+      >
+
+
+      <label>
+        Descrição
+
+        <input
+          type="text"
+          name="descricao"
+          required
+          value="${escapar(
+            existente?.descricao || ""
+          )}"
+          placeholder="Ex.: Mercado"
+        >
+      </label>
+
+
+      <label>
+        Valor
+
+        <input
+          type="number"
+          name="valor"
+          required
+          min="0"
+          step="0.01"
+          value="${
+            existente?.valor ?? ""
+          }"
+          placeholder="0,00"
+        >
+      </label>
+
+
+      <label>
+        Categoria
+
+        <select
+          name="categoria"
+          required
+        >
+
+          ${gerarOptions(
+            categoriasDespesa,
+            existente?.categoria || ""
+          )}
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Tipo
+
+        <select name="tipo">
+
+          <option
+            value="Variável"
+            ${
+              existente?.tipo === "Variável"
+                ? "selected"
+                : ""
+            }
+          >
+            Variável
+          </option>
+
+          <option
+            value="Fixa"
+            ${
+              existente?.tipo === "Fixa"
+                ? "selected"
+                : ""
+            }
+          >
+            Fixa
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Data de vencimento
+
+        <input
+          type="date"
+          name="vencimento"
+          required
+          value="${escapar(
+            obterDataInput(dataPadrao)
+          )}"
+        >
+
+      </label>
+
+
+      <label>
+        Forma de pagamento
+
+        <select name="formaPagamento">
+
+          ${gerarOptions(
+            formasPagamento,
+            existente?.formaPagamento || "Pix"
+          )}
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Status
+
+        <select name="status">
+
+          <option
+            value="pendente"
+            ${
+              existente?.status === "pendente" ||
+              !existente
+                ? "selected"
+                : ""
+            }
+          >
+            Pendente
+          </option>
+
+          <option
+            value="paga"
+            ${
+              existente?.status === "paga"
+                ? "selected"
+                : ""
+            }
+          >
+            Paga
+          </option>
+
+          <option
+            value="vencida"
+            ${
+              existente?.status === "vencida"
+                ? "selected"
+                : ""
+            }
+          >
+            Vencida
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Observação
+
+        <textarea
+          name="observacao"
+          rows="3"
+          placeholder="Opcional"
+        >${escapar(
+          existente?.observacao || ""
+        )}</textarea>
+
+      </label>
+
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-end;
+          gap:10px;
+          margin-top:8px;
+        "
+      >
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-action="fechar-modal"
+        >
+          Cancelar
+        </button>
+
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+          ${
+            existente
+              ? "Salvar alterações"
+              : "Cadastrar despesa"
+          }
+        </button>
+
+      </div>
+
+    </form>
+
+  `);
+
+
+  const form =
+    document.getElementById(
+      "formDespesa"
+    );
+
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      salvarDespesa
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SALVAR DESPESA
+========================================================= */
+
+function salvarDespesa(event) {
+
+  event.preventDefault();
+
+
+  const form =
+    event.currentTarget;
+
+
+  const dados =
+    new FormData(form);
+
+
+  const descricao =
+    String(
+      dados.get("descricao") || ""
+    ).trim();
+
+
+  const valor =
+    Number(
+      dados.get("valor")
+    );
+
+
+  const categoria =
+    String(
+      dados.get("categoria") || ""
+    );
+
+
+  const vencimento =
+    String(
+      dados.get("vencimento") || ""
+    );
+
+
+  if (!campoPreenchido(descricao)) {
+
+    toastFinanceiro(
+      "Informe a descrição da despesa."
     );
 
     return;
@@ -1134,94 +1691,1249 @@ function carregarPagina(nome) {
   }
 
 
-  conteudo.innerHTML =
-    paginas[nome].render();
+  if (!valorValido(valor) || valor <= 0) {
 
+    toastFinanceiro(
+      "Informe um valor válido."
+    );
 
-  if (titulo) {
-
-    titulo.textContent =
-      paginas[nome].titulo;
-
-  }
-
-
-  if (subtitulo) {
-
-    subtitulo.textContent =
-      paginas[nome].subtitulo;
+    return;
 
   }
 
 
-  document
-    .querySelectorAll(".menu")
-    .forEach(botao => {
+  if (!vencimento) {
 
-      botao.classList.toggle(
-        "active",
-        botao.dataset.page === nome
-      );
+    toastFinanceiro(
+      "Informe a data de vencimento."
+    );
 
-    });
+    return;
+
+  }
 
 
-  configurarCategoriasDashboard();
+  const data =
+    new Date(
+      `${vencimento}T00:00:00`
+    );
+
+
+  if (Number.isNaN(data.getTime())) {
+
+    toastFinanceiro(
+      "A data informada é inválida."
+    );
+
+    return;
+
+  }
+
+
+  const id =
+    String(
+      dados.get("id") || ""
+    );
+
+
+  const { mes, ano } =
+    obterPeriodo();
+
+
+  const registro = {
+
+    descricao,
+
+    valor,
+
+    categoria,
+
+    tipo:
+      String(
+        dados.get("tipo") ||
+        "Variável"
+      ),
+
+    vencimento,
+
+    dataPagamento:
+      dados.get("status") === "paga"
+        ? dataAtual()
+        : null,
+
+    formaPagamento:
+      String(
+        dados.get("formaPagamento") ||
+        "Pix"
+      ),
+
+    status:
+      String(
+        dados.get("status") ||
+        "pendente"
+      ),
+
+    mes,
+
+    ano,
+
+    observacao:
+      String(
+        dados.get("observacao") ||
+        ""
+      ).trim()
+
+  };
+
+
+  if (id) {
+
+    atualizarRegistro(
+      "despesas",
+      id,
+      registro
+    );
+
+    toastFinanceiro(
+      "Despesa atualizada."
+    );
+
+  } else {
+
+    adicionarRegistro(
+      "despesas",
+      registro
+    );
+
+    toastFinanceiro(
+      "Despesa cadastrada."
+    );
+
+  }
+
+
+  fecharModalFinanceiro();
+
+  renderFinanceiro();
 
 }
 
 
 /* =========================================================
-   CATEGORIAS CLICÁVEIS
+   FORMULÁRIO DE RECEITA
 ========================================================= */
 
-function configurarCategoriasDashboard() {
+function abrirFormularioReceita(id = null) {
 
-  document
+  const existente =
+    id
+      ? (DB.receitas || [])
+          .find(item => item.id === id)
+      : null;
+
+
+  const { mes, ano } =
+    obterPeriodo();
+
+
+  const dataPadrao =
+    existente?.dataRecebimento ||
+    `${ano}-${String(
+      mes + 1
+    ).padStart(2, "0")}-01`;
+
+
+  abrirModalFinanceiro(`
+
+    <div class="modal-header">
+
+      <div>
+
+        <h3>
+          ${
+            existente
+              ? "Editar receita"
+              : "Nova receita"
+          }
+        </h3>
+
+        <p class="muted">
+          Cadastre uma entrada de dinheiro.
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        class="small-btn"
+        data-action="fechar-modal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form
+      id="formReceita"
+      style="
+        display:grid;
+        gap:16px;
+        margin-top:20px;
+      "
+    >
+
+      <input
+        type="hidden"
+        name="id"
+        value="${escapar(
+          existente?.id || ""
+        )}"
+      >
+
+
+      <label>
+        Descrição
+
+        <input
+          type="text"
+          name="descricao"
+          required
+          value="${escapar(
+            existente?.descricao || ""
+          )}"
+          placeholder="Ex.: Salário"
+        >
+      </label>
+
+
+      <label>
+        Valor
+
+        <input
+          type="number"
+          name="valor"
+          required
+          min="0"
+          step="0.01"
+          value="${
+            existente?.valor ?? ""
+          }"
+          placeholder="0,00"
+        >
+      </label>
+
+
+      <label>
+        Categoria
+
+        <select
+          name="categoria"
+          required
+        >
+
+          ${gerarOptions(
+            categoriasReceita,
+            existente?.categoria || "Salário"
+          )}
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Data de recebimento
+
+        <input
+          type="date"
+          name="dataRecebimento"
+          required
+          value="${escapar(
+            obterDataInput(dataPadrao)
+          )}"
+        >
+
+      </label>
+
+
+      <label>
+        Recorrência
+
+        <select name="recorrencia">
+
+          <option
+            value="Única"
+            ${
+              existente?.recorrencia === "Única"
+                ? "selected"
+                : ""
+            }
+          >
+            Única
+          </option>
+
+          <option
+            value="Mensal"
+            ${
+              existente?.recorrencia === "Mensal" ||
+              !existente
+                ? "selected"
+                : ""
+            }
+          >
+            Mensal
+          </option>
+
+          <option
+            value="Anual"
+            ${
+              existente?.recorrencia === "Anual"
+                ? "selected"
+                : ""
+            }
+          >
+            Anual
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Observação
+
+        <textarea
+          name="observacao"
+          rows="3"
+          placeholder="Opcional"
+        >${escapar(
+          existente?.observacao || ""
+        )}</textarea>
+
+      </label>
+
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-end;
+          gap:10px;
+        "
+      >
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-action="fechar-modal"
+        >
+          Cancelar
+        </button>
+
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+          ${
+            existente
+              ? "Salvar alterações"
+              : "Cadastrar receita"
+          }
+        </button>
+
+      </div>
+
+    </form>
+
+  `);
+
+
+  const form =
+    document.getElementById(
+      "formReceita"
+    );
+
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      salvarReceita
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SALVAR RECEITA
+========================================================= */
+
+function salvarReceita(event) {
+
+  event.preventDefault();
+
+
+  const dados =
+    new FormData(
+      event.currentTarget
+    );
+
+
+  const descricao =
+    String(
+      dados.get("descricao") || ""
+    ).trim();
+
+
+  const valor =
+    Number(
+      dados.get("valor")
+    );
+
+
+  const dataRecebimento =
+    String(
+      dados.get("dataRecebimento") || ""
+    );
+
+
+  if (!campoPreenchido(descricao)) {
+
+    toastFinanceiro(
+      "Informe a descrição da receita."
+    );
+
+    return;
+
+  }
+
+
+  if (!valorValido(valor) || valor <= 0) {
+
+    toastFinanceiro(
+      "Informe um valor válido."
+    );
+
+    return;
+
+  }
+
+
+  if (!dataRecebimento) {
+
+    toastFinanceiro(
+      "Informe a data de recebimento."
+    );
+
+    return;
+
+  }
+
+
+  const data =
+    new Date(
+      `${dataRecebimento}T00:00:00`
+    );
+
+
+  if (Number.isNaN(data.getTime())) {
+
+    toastFinanceiro(
+      "A data informada é inválida."
+    );
+
+    return;
+
+  }
+
+
+  const id =
+    String(
+      dados.get("id") || ""
+    );
+
+
+  const registro = {
+
+    descricao,
+
+    valor,
+
+    categoria:
+      String(
+        dados.get("categoria") ||
+        "Outros"
+      ),
+
+    dataRecebimento,
+
+    recorrencia:
+      String(
+        dados.get("recorrencia") ||
+        "Única"
+      ),
+
+    observacao:
+      String(
+        dados.get("observacao") ||
+        ""
+      ).trim(),
+
+    mes:
+      data.getMonth(),
+
+    ano:
+      data.getFullYear()
+
+  };
+
+
+  if (id) {
+
+    atualizarRegistro(
+      "receitas",
+      id,
+      registro
+    );
+
+    toastFinanceiro(
+      "Receita atualizada."
+    );
+
+  } else {
+
+    adicionarRegistro(
+      "receitas",
+      registro
+    );
+
+    toastFinanceiro(
+      "Receita cadastrada."
+    );
+
+  }
+
+
+  fecharModalFinanceiro();
+
+  renderFinanceiro();
+
+}
+
+
+/* =========================================================
+   FORMULÁRIO DE CUSTO FIXO
+========================================================= */
+
+function abrirFormularioFixo(id = null) {
+
+  const existente =
+    id
+      ? (DB.custosFixos || [])
+          .find(item => item.id === id)
+      : null;
+
+
+  abrirModalFinanceiro(`
+
+    <div class="modal-header">
+
+      <div>
+
+        <h3>
+          ${
+            existente
+              ? "Editar custo fixo"
+              : "Novo custo fixo"
+          }
+        </h3>
+
+        <p class="muted">
+          Uma conta recorrente do seu orçamento.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="small-btn"
+        data-action="fechar-modal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form
+      id="formFixo"
+      style="
+        display:grid;
+        gap:16px;
+        margin-top:20px;
+      "
+    >
+
+      <input
+        type="hidden"
+        name="id"
+        value="${escapar(
+          existente?.id || ""
+        )}"
+      >
+
+
+      <label>
+        Nome da conta
+
+        <input
+          type="text"
+          name="nome"
+          required
+          value="${escapar(
+            existente?.nome || ""
+          )}"
+          placeholder="Ex.: Internet"
+        >
+
+      </label>
+
+
+      <label>
+        Valor
+
+        <input
+          type="number"
+          name="valor"
+          required
+          min="0"
+          step="0.01"
+          value="${
+            existente?.valor ?? ""
+          }"
+          placeholder="0,00"
+        >
+
+      </label>
+
+
+      <label>
+        Categoria
+
+        <select
+          name="categoria"
+          required
+        >
+
+          ${gerarOptions(
+            categoriasDespesa,
+            existente?.categoria || "Contas da Casa"
+          )}
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Dia do vencimento
+
+        <input
+          type="number"
+          name="diaVencimento"
+          required
+          min="1"
+          max="31"
+          value="${
+            existente?.diaVencimento ?? 10
+          }"
+        >
+
+      </label>
+
+
+      <label>
+        Forma de pagamento
+
+        <select name="formaPagamento">
+
+          ${gerarOptions(
+            formasPagamento,
+            existente?.formaPagamento || "Pix"
+          )}
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Recorrência
+
+        <select name="recorrencia">
+
+          <option
+            value="Mensal"
+            selected
+          >
+            Mensal
+          </option>
+
+          <option
+            value="Anual"
+          >
+            Anual
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-end;
+          gap:10px;
+        "
+      >
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-action="fechar-modal"
+        >
+          Cancelar
+        </button>
+
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+          ${
+            existente
+              ? "Salvar alterações"
+              : "Cadastrar custo fixo"
+          }
+        </button>
+
+      </div>
+
+    </form>
+
+  `);
+
+
+  const form =
+    document.getElementById(
+      "formFixo"
+    );
+
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      salvarFixo
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SALVAR CUSTO FIXO
+========================================================= */
+
+function salvarFixo(event) {
+
+  event.preventDefault();
+
+
+  const dados =
+    new FormData(
+      event.currentTarget
+    );
+
+
+  const nome =
+    String(
+      dados.get("nome") || ""
+    ).trim();
+
+
+  const valor =
+    Number(
+      dados.get("valor")
+    );
+
+
+  const dia =
+    Number(
+      dados.get("diaVencimento")
+    );
+
+
+  if (!campoPreenchido(nome)) {
+
+    toastFinanceiro(
+      "Informe o nome da conta."
+    );
+
+    return;
+
+  }
+
+
+  if (!valorValido(valor) || valor <= 0) {
+
+    toastFinanceiro(
+      "Informe um valor válido."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !Number.isInteger(dia) ||
+    dia < 1 ||
+    dia > 31
+  ) {
+
+    toastFinanceiro(
+      "O dia deve estar entre 1 e 31."
+    );
+
+    return;
+
+  }
+
+
+  const id =
+    String(
+      dados.get("id") || ""
+    );
+
+
+  const registro = {
+
+    nome,
+
+    valor,
+
+    categoria:
+      String(
+        dados.get("categoria") ||
+        "Contas da Casa"
+      ),
+
+    diaVencimento:
+      dia,
+
+    formaPagamento:
+      String(
+        dados.get("formaPagamento") ||
+        "Pix"
+      ),
+
+    recorrencia:
+      String(
+        dados.get("recorrencia") ||
+        "Mensal"
+      ),
+
+    ativo:
+      existenteAtivo(
+        id
+      )
+
+  };
+
+
+  if (id) {
+
+    atualizarRegistro(
+      "custosFixos",
+      id,
+      registro
+    );
+
+    toastFinanceiro(
+      "Custo fixo atualizado."
+    );
+
+  } else {
+
+    adicionarRegistro(
+      "custosFixos",
+      {
+        ...registro,
+        ativo: true
+      }
+    );
+
+    toastFinanceiro(
+      "Custo fixo cadastrado."
+    );
+
+  }
+
+
+  fecharModalFinanceiro();
+
+  renderFinanceiro();
+
+}
+
+
+function existenteAtivo(id) {
+
+  if (!id) {
+    return true;
+  }
+
+  const existente =
+    (DB.custosFixos || [])
+      .find(item => item.id === id);
+
+  return existente
+    ? existente.ativo !== false
+    : true;
+
+}
+
+
+/* =========================================================
+   PAGAR DESPESA
+========================================================= */
+
+function pagarDespesa(id) {
+
+  const despesa =
+    (DB.despesas || [])
+      .find(item => item.id === id);
+
+
+  if (!despesa) {
+    return;
+  }
+
+
+  atualizarRegistro(
+    "despesas",
+    id,
+    {
+      status: "paga",
+      dataPagamento: dataAtual()
+    }
+  );
+
+
+  toastFinanceiro(
+    "Despesa marcada como paga."
+  );
+
+
+  renderFinanceiro();
+
+}
+
+
+/* =========================================================
+   ALTERNAR CUSTO FIXO
+========================================================= */
+
+function alternarFixo(id) {
+
+  const custo =
+    (DB.custosFixos || [])
+      .find(item => item.id === id);
+
+
+  if (!custo) {
+    return;
+  }
+
+
+  atualizarRegistro(
+    "custosFixos",
+    id,
+    {
+      ativo:
+        custo.ativo === false
+    }
+  );
+
+
+  toastFinanceiro(
+    custo.ativo === false
+      ? "Custo fixo ativado."
+      : "Custo fixo desativado."
+  );
+
+
+  renderFinanceiro();
+
+}
+
+
+/* =========================================================
+   EXCLUSÃO
+========================================================= */
+
+function excluirFinanceiro(
+  colecao,
+  id,
+  nome
+) {
+
+  const confirmar =
+    confirm(
+      `Deseja realmente excluir ${nome}?`
+    );
+
+
+  if (!confirmar) {
+    return;
+  }
+
+
+  const removido =
+    excluirRegistro(
+      colecao,
+      id
+    );
+
+
+  if (!removido) {
+
+    toastFinanceiro(
+      "Não foi possível excluir."
+    );
+
+    return;
+
+  }
+
+
+  toastFinanceiro(
+    "Registro excluído."
+  );
+
+
+  renderFinanceiro();
+
+}
+
+
+/* =========================================================
+   EVENTOS
+========================================================= */
+
+function configurarEventosFinanceiro() {
+
+  const container =
+    document.getElementById(
+      "financeiroPage"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  container
     .querySelectorAll(
-      ".legend[data-categoria]"
+      "[data-finance-tab]"
     )
-    .forEach(elemento => {
-
-      elemento.addEventListener(
-        "click",
-        () => {
-
-          const categoria =
-            elemento.dataset.categoria;
-
-          mostrarToast(
-            `Categoria: ${categoria} — ${moeda(
-              gastoDaCategoria(categoria)
-            )}`
-          );
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   NAVEGAÇÃO
-========================================================= */
-
-function configurarNavegacao() {
-
-  document
-    .querySelectorAll(".menu")
     .forEach(botao => {
 
       botao.addEventListener(
         "click",
         () => {
 
-          const pagina =
-            botao.dataset.page;
+          abaFinanceiro =
+            botao.dataset.financeTab;
 
-          carregarPagina(pagina);
+          renderFinanceiro();
+
+        }
+      );
+
+    });
+
+
+  container
+    .querySelectorAll(
+      "[data-action]"
+    )
+    .forEach(botao => {
+
+      botao.addEventListener(
+        "click",
+        () => {
+
+          const action =
+            botao.dataset.action;
+
+          const id =
+            botao.dataset.id;
+
+
+          if (
+            action ===
+            "nova-despesa"
+          ) {
+
+            abrirFormularioDespesa();
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "editar-despesa"
+          ) {
+
+            abrirFormularioDespesa(id);
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "excluir-despesa"
+          ) {
+
+            excluirFinanceiro(
+              "despesas",
+              id,
+              "esta despesa"
+            );
+
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "pagar-despesa"
+          ) {
+
+            pagarDespesa(id);
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "nova-receita"
+          ) {
+
+            abrirFormularioReceita();
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "editar-receita"
+          ) {
+
+            abrirFormularioReceita(id);
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "excluir-receita"
+          ) {
+
+            excluirFinanceiro(
+              "receitas",
+              id,
+              "esta receita"
+            );
+
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "novo-fixo"
+          ) {
+
+            abrirFormularioFixo();
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "editar-fixo"
+          ) {
+
+            abrirFormularioFixo(id);
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "excluir-fixo"
+          ) {
+
+            excluirFinanceiro(
+              "custosFixos",
+              id,
+              "este custo fixo"
+            );
+
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "alternar-fixo"
+          ) {
+
+            alternarFixo(id);
+            return;
+
+          }
+
+
+          if (
+            action ===
+            "fechar-modal"
+          ) {
+
+            fecharModalFinanceiro();
+
+          }
 
         }
       );
@@ -1232,254 +2944,55 @@ function configurarNavegacao() {
 
 
 /* =========================================================
-   SELETOR DE MÊS
+   RENDER PRINCIPAL
 ========================================================= */
 
-function configurarMes() {
+function renderFinanceiro() {
 
-  const seletor =
+  const container =
     document.getElementById(
-      "monthSelect"
+      "content"
     );
 
-  if (!seletor) {
+
+  if (!container) {
     return;
   }
 
 
-  const mes =
-    obterMesSelecionado();
+  container.innerHTML = `
+
+    <div
+      class="page"
+      id="financeiroPage"
+    >
+
+      ${renderResumoFinanceiro()}
+
+      ${renderAbas()}
+
+    </div>
+
+  `;
 
 
-  if (
-    mes >= 0 &&
-    mes < seletor.options.length
-  ) {
-
-    seletor.value =
-      String(mes);
-
-  }
-
-
-  seletor.addEventListener(
-    "change",
-    () => {
-
-      const novoMes =
-        Number(
-          seletor.value
-        );
-
-
-      if (!DB.config) {
-        DB.config = {};
-      }
-
-
-      DB.config.mes =
-        novoMes;
-
-      DB.config.mesAtual =
-        novoMes;
-
-
-      salvarBanco();
-
-
-      carregarPagina(
-        paginaAtual
-      );
-
-
-      mostrarToast(
-        "Período alterado para " +
-        seletor.options[
-          seletor.selectedIndex
-        ].text
-      );
-
-    }
-  );
+  configurarEventosFinanceiro();
 
 }
 
 
 /* =========================================================
-   NOTIFICAÇÕES
-========================================================= */
-
-function configurarNotificacoes() {
-
-  const botao =
-    document.getElementById(
-      "notificationButton"
-    );
-
-  if (!botao) {
-    return;
-  }
-
-
-  botao.addEventListener(
-    "click",
-    () => {
-
-      const quantidade =
-        gerarQuantidadeAlertas();
-
-
-      if (quantidade === 0) {
-
-        mostrarToast(
-          "Nenhum alerta no momento."
-        );
-
-        return;
-
-      }
-
-
-      mostrarToast(
-        quantidade === 1
-          ? "Você possui 1 alerta."
-          : `Você possui ${quantidade} alertas.`
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   QUANTIDADE DE ALERTAS
-========================================================= */
-
-function gerarQuantidadeAlertas() {
-
-  let quantidade = 0;
-
-
-  if (saldoDoMes() < 0) {
-    quantidade++;
-  }
-
-
-  const receitas =
-    receitasDoMes();
-
-  const despesas =
-    despesasDoMes();
-
-
-  if (
-    receitas > 0 &&
-    despesas / receitas >= 0.8
-  ) {
-
-    quantidade++;
-
-  }
-
-
-  (DB.limites || [])
-    .filter(pertenceAoPeriodo)
-    .forEach(item => {
-
-      const limite =
-        Number(item.limite || 0);
-
-      const gasto =
-        gastoDaCategoria(
-          item.categoria
-        );
-
-
-      if (
-        limite > 0 &&
-        gasto >= limite * 0.8
-      ) {
-
-        quantidade++;
-
-      }
-
-    });
-
-
-  return quantidade;
-
-}
-
-
-/* =========================================================
-   INICIALIZAÇÃO
-========================================================= */
-
-function iniciarApp() {
-
-  console.log(
-    "AUREA iniciado."
-  );
-
-  console.log(
-    "Banco AUREA:",
-    DB
-  );
-
-
-  configurarNavegacao();
-
-  configurarMes();
-
-  configurarNotificacoes();
-
-  carregarPagina(
-    "dashboard"
-  );
-
-}
-
-
-/* =========================================================
-   DOM READY
-========================================================= */
-
-if (
-  document.readyState === "loading"
-) {
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    iniciarApp
-  );
-
-} else {
-
-  iniciarApp();
-
-}
-
-
-/* =========================================================
-   EXPORTAÇÕES
+   API DO MÓDULO
 ========================================================= */
 
 export {
 
-  carregarPagina,
+  renderFinanceiro,
 
-  mostrarToast,
+  receitasFinanceiro,
 
-  receitasDoMes,
+  despesasFinanceiro,
 
-  despesasDoMes,
+  saldoFinanceiro
 
-  saldoDoMes,
-
-  investimentosDoMes,
-
-  gastosPorCategoria
-
-};V
+};
