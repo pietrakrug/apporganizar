@@ -1,13 +1,63 @@
 "use strict";
 
-/*
-  AUREA - Controle Financeiro
-  Compatível com a nova versão do index.html
-*/
+/* =====================================================
+   AUREA - MAIN.JS
+   Compatível com o index.html atualizado
+===================================================== */
 
 const STORAGE_KEY = "AUREA_DB";
 
-const DB_PADRAO = {
+function gerarId() {
+  if (window.crypto && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return Date.now() + "-" + Math.random().toString(16).slice(2);
+}
+
+function moeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+function escapar(valor) {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function salvar() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+}
+
+function mostrarToast(mensagem) {
+  const toast = document.getElementById("toast");
+
+  if (!toast) {
+    alert(mensagem);
+    return;
+  }
+
+  toast.textContent = mensagem;
+  toast.classList.add("show");
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+}
+
+/* =====================================================
+   BANCO DE DADOS
+===================================================== */
+
+const bancoInicial = {
   receitas: [
     {
       id: gerarId(),
@@ -146,95 +196,60 @@ const DB_PADRAO = {
   }
 };
 
-let DB = carregarBanco();
-let paginaAtual = "dashboard";
-
-/* =====================================================
-   UTILIDADES
-===================================================== */
-
-function gerarId() {
-  if (window.crypto && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function moeda(valor) {
-  return Number(valor || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-}
-
-function numero(valor) {
-  return Number(valor || 0).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
-function escapar(texto) {
-  return String(texto ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function salvarBanco() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
-}
-
 function carregarBanco() {
-  const salvo = localStorage.getItem(STORAGE_KEY);
+  const bancoSalvo = localStorage.getItem(STORAGE_KEY);
 
-  if (!salvo) {
+  if (!bancoSalvo) {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify(DB_PADRAO)
+      JSON.stringify(bancoInicial)
     );
 
-    return DB_PADRAO;
+    return bancoInicial;
   }
 
   try {
-    const dados = JSON.parse(salvo);
+    const banco = JSON.parse(bancoSalvo);
 
     return {
-      receitas: dados.receitas || [],
-      despesas: dados.despesas || [],
-      investimentos: dados.investimentos || [],
-      limites: dados.limites || [],
-      desejos: dados.desejos || [],
-      dividas: Number(dados.dividas || 0),
-      config: dados.config || DB_PADRAO.config
+      receitas: Array.isArray(banco.receitas)
+        ? banco.receitas
+        : [],
+
+      despesas: Array.isArray(banco.despesas)
+        ? banco.despesas
+        : [],
+
+      investimentos: Array.isArray(banco.investimentos)
+        ? banco.investimentos
+        : [],
+
+      limites: Array.isArray(banco.limites)
+        ? banco.limites
+        : [],
+
+      desejos: Array.isArray(banco.desejos)
+        ? banco.desejos
+        : [],
+
+      dividas: Number(banco.dividas || 0),
+
+      config: banco.config || bancoInicial.config
     };
   } catch (erro) {
-    console.error("Erro ao carregar banco:", erro);
-    return DB_PADRAO;
+    console.error("Erro ao ler o banco de dados:", erro);
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(bancoInicial)
+    );
+
+    return bancoInicial;
   }
 }
 
-function mostrarToast(mensagem) {
-  const toast = document.getElementById("toast");
-
-  if (!toast) {
-    alert(mensagem);
-    return;
-  }
-
-  toast.textContent = mensagem;
-  toast.classList.add("show");
-
-  clearTimeout(window.aureaToastTimer);
-
-  window.aureaToastTimer = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2500);
-}
+let DB = carregarBanco();
+let paginaAtual = "dashboard";
 
 /* =====================================================
    CÁLCULOS
@@ -254,15 +269,15 @@ function totalDespesas() {
   );
 }
 
-function saldoAtual() {
-  return totalReceitas() - totalDespesas();
-}
-
 function totalInvestimentos() {
   return DB.investimentos.reduce(
     (total, item) => total + Number(item.valor || 0),
     0
   );
+}
+
+function saldoAtual() {
+  return totalReceitas() - totalDespesas();
 }
 
 function totalDesejos() {
@@ -305,130 +320,41 @@ function gastoDaCategoria(categoria) {
 }
 
 /* =====================================================
-   NAVEGAÇÃO
-===================================================== */
-
-const PAGINAS = {
-  dashboard: {
-    titulo: "Dashboard",
-    subtitulo: "Acompanhe sua evolução financeira",
-    renderizar: renderDashboard
-  },
-
-  financeiro: {
-    titulo: "Meu Financeiro",
-    subtitulo: "Controle suas receitas, despesas e dívidas",
-    renderizar: renderFinanceiro
-  },
-
-  investimentos: {
-    titulo: "Investimentos",
-    subtitulo: "Acompanhe seu patrimônio e seus aportes",
-    renderizar: renderInvestimentos
-  },
-
-  limites: {
-    titulo: "Limites",
-    subtitulo: "Defina limites para seus gastos",
-    renderizar: renderLimites
-  },
-
-  desejos: {
-    titulo: "Desejos",
-    subtitulo: "Planeje suas próximas conquistas",
-    renderizar: renderDesejos
-  }
-};
-
-function carregarPagina(nome) {
-  if (!PAGINAS[nome]) {
-    nome = "dashboard";
-  }
-
-  paginaAtual = nome;
-
-  const titulo = document.getElementById("pageTitle");
-  const subtitulo = document.getElementById("pageSubtitle");
-  const conteudo = document.getElementById("content");
-
-  if (titulo) {
-    titulo.textContent = PAGINAS[nome].titulo;
-  }
-
-  if (subtitulo) {
-    subtitulo.textContent = PAGINAS[nome].subtitulo;
-  }
-
-  if (conteudo) {
-    conteudo.innerHTML = PAGINAS[nome].renderizar();
-  }
-
-  document.querySelectorAll(".menu").forEach(botao => {
-    botao.classList.toggle(
-      "active",
-      botao.dataset.page === nome
-    );
-  });
-
-  conectarEventosDaPagina();
-}
-
-function configurarMenu() {
-  document.querySelectorAll(".menu").forEach(botao => {
-    botao.addEventListener("click", () => {
-      carregarPagina(botao.dataset.page);
-    });
-  });
-}
-
-/* =====================================================
    COMPONENTES
 ===================================================== */
 
-function cartaoResumo(titulo, valor, classe, icone) {
-  return `
-    <div class="card metric">
-      <small>${titulo}</small>
-      <strong class="${classe}">
-        ${typeof valor === "number" ? moeda(valor) : valor}
-      </strong>
-      <span class="icon">${icone}</span>
-    </div>
-  `;
-}
-
 function resumoCards() {
-  const saldoClasse = saldoAtual() >= 0 ? "green" : "red";
+  const classeSaldo = saldoAtual() >= 0 ? "green" : "red";
 
   return `
     <div class="cards">
-      ${cartaoResumo(
-        "Receitas",
-        totalReceitas(),
-        "green",
-        "💰"
-      )}
+      <div class="card metric">
+        <small>Receitas</small>
+        <strong class="green">${moeda(totalReceitas())}</strong>
+        <span class="icon">💰</span>
+      </div>
 
-      ${cartaoResumo(
-        "Despesas",
-        totalDespesas(),
-        "red",
-        "↘"
-      )}
+      <div class="card metric">
+        <small>Despesas</small>
+        <strong class="red">${moeda(totalDespesas())}</strong>
+        <span class="icon">↘</span>
+      </div>
 
-      ${cartaoResumo(
-        "Saldo do mês",
-        saldoAtual(),
-        saldoClasse,
-        "↗"
-      )}
+      <div class="card metric">
+        <small>Saldo do mês</small>
+        <strong class="${classeSaldo}">
+          ${moeda(saldoAtual())}
+        </strong>
+        <span class="icon">↗</span>
+      </div>
 
-      ${cartaoResumo(
-        "Investimentos",
-        totalInvestimentos(),
-        "purple",
-        "📈"
-      )}
+      <div class="card metric">
+        <small>Investimentos</small>
+        <strong class="purple">
+          ${moeda(totalInvestimentos())}
+        </strong>
+        <span class="icon">📈</span>
+      </div>
     </div>
   `;
 }
@@ -437,23 +363,92 @@ function resumoCards() {
    DASHBOARD
 ===================================================== */
 
+function gerarAlertas() {
+  const alertas = [];
+
+  if (saldoAtual() < 0) {
+    alertas.push(`
+      <div class="alert danger">
+        ⚠️ Seu saldo está negativo.
+      </div>
+    `);
+  }
+
+  if (totalReceitas() > 0) {
+    const percentual =
+      totalDespesas() / totalReceitas() * 100;
+
+    if (percentual >= 80) {
+      alertas.push(`
+        <div class="alert danger">
+          ⚠️ Você já utilizou ${percentual.toFixed(1)}%
+          da sua renda.
+        </div>
+      `);
+    } else {
+      alertas.push(`
+        <div class="alert">
+          ✅ Você está poupando
+          ${(100 - percentual).toFixed(1)}%
+          da sua renda.
+        </div>
+      `);
+    }
+  }
+
+  const existeLimiteExcedido = DB.limites.some(item => {
+    return gastoDaCategoria(item.categoria) > item.limite;
+  });
+
+  if (existeLimiteExcedido) {
+    alertas.push(`
+      <div class="alert warning">
+        ⚠️ Existe limite de categoria ultrapassado.
+      </div>
+    `);
+  }
+
+  if (DB.desejos.length > 0) {
+    alertas.push(`
+      <div class="alert">
+        ✨ Você possui ${DB.desejos.length}
+        meta(s) financeira(s).
+      </div>
+    `);
+  }
+
+  if (alertas.length === 0) {
+    return `
+      <div class="alert">
+        ✅ Sua organização financeira está em dia.
+      </div>
+    `;
+  }
+
+  return alertas.join("");
+}
+
 function renderDashboard() {
   const categorias = gastosPorCategoria();
   const total = totalDespesas();
 
   const categoriasHTML = Object.entries(categorias)
     .sort((a, b) => b[1] - a[1])
-    .map(([nome, valor]) => {
+    .map(([categoria, valor]) => {
       const percentual = total > 0
-        ? (valor / total) * 100
+        ? valor / total * 100
         : 0;
 
       return `
         <div class="legend">
           <span>
             <label>
-              <i class="dot" style="background:#765ce3"></i>
-              ${escapar(nome)}
+              <i
+                class="dot"
+                style="background:#765ce3">
+              </i>
+
+              ${escapar(categoria)}
             </label>
 
             ${moeda(valor)}
@@ -467,11 +462,9 @@ function renderDashboard() {
     })
     .join("");
 
-  const utilizacao = totalReceitas() > 0
-    ? (totalDespesas() / totalReceitas()) * 100
+  const percentualUso = totalReceitas() > 0
+    ? totalDespesas() / totalReceitas() * 100
     : 0;
-
-  const alertas = gerarAlertasHTML();
 
   return `
     <div class="page">
@@ -480,7 +473,12 @@ function renderDashboard() {
       <div class="grid-2">
         <div class="panel">
           <h3>🔔 Alertas inteligentes</h3>
-          ${alertas}
+
+          <div class="alert warning">
+            📅 Existem contas próximas do vencimento.
+          </div>
+
+          ${gerarAlertas()}
         </div>
 
         <div class="panel">
@@ -489,7 +487,7 @@ function renderDashboard() {
           ${
             categoriasHTML ||
             `<div class="empty">
-              Nenhuma despesa registrada.
+              Nenhuma despesa cadastrada.
             </div>`
           }
         </div>
@@ -498,14 +496,18 @@ function renderDashboard() {
       <div class="panel">
         <div class="panel-header">
           <h3>Resumo financeiro</h3>
+
           <span class="muted">
-            ${numero(utilizacao)}% da renda utilizada
+            ${percentualUso.toFixed(1)}% da renda utilizada
           </span>
         </div>
 
         <div class="chart">
           <div class="bar-box">
-            <div class="bar" style="height:90%"></div>
+            <div
+              class="bar"
+              style="height:90%">
+            </div>
             <small>Receitas</small>
           </div>
 
@@ -533,7 +535,8 @@ function renderDashboard() {
                 Math.min(
                   90,
                   totalReceitas()
-                    ? Math.max(0, saldoAtual()) / totalReceitas() * 90
+                    ? Math.max(0, saldoAtual())
+                      / totalReceitas() * 90
                     : 6
                 )
               )}%">
@@ -546,72 +549,12 @@ function renderDashboard() {
   `;
 }
 
-function gerarAlertasHTML() {
-  const alertas = [];
-
-  if (saldoAtual() < 0) {
-    alertas.push(`
-      <div class="alert danger">
-        ⚠️ Seu saldo está negativo.
-      </div>
-    `);
-  }
-
-  if (totalReceitas() > 0) {
-    const uso = totalDespesas() / totalReceitas() * 100;
-
-    if (uso >= 80) {
-      alertas.push(`
-        <div class="alert danger">
-          ⚠️ Você já utilizou ${numero(uso)}% da sua renda.
-        </div>
-      `);
-    } else {
-      alertas.push(`
-        <div class="alert">
-          ✅ Você está poupando ${numero(100 - uso)}% da sua renda.
-        </div>
-      `);
-    }
-  }
-
-  const limiteExcedido = DB.limites.some(item => {
-    return gastoDaCategoria(item.categoria) > item.limite;
-  });
-
-  if (limiteExcedido) {
-    alertas.push(`
-      <div class="alert warning">
-        ⚠️ Existe pelo menos um limite de categoria excedido.
-      </div>
-    `);
-  }
-
-  if (DB.desejos.length > 0) {
-    alertas.push(`
-      <div class="alert">
-        ✨ Você possui ${DB.desejos.length} meta(s) financeira(s).
-      </div>
-    `);
-  }
-
-  if (alertas.length === 0) {
-    return `
-      <div class="alert">
-        ✅ Sua organização financeira está em dia.
-      </div>
-    `;
-  }
-
-  return alertas.join("");
-}
-
 /* =====================================================
-   MEU FINANCEIRO
+   FINANCEIRO
 ===================================================== */
 
 function renderFinanceiro() {
-  const receitasHTML = DB.receitas.map(item => `
+  const receitas = DB.receitas.map(item => `
     <tr>
       <td>${escapar(item.descricao)}</td>
       <td>${escapar(item.categoria)}</td>
@@ -626,7 +569,7 @@ function renderFinanceiro() {
     </tr>
   `).join("");
 
-  const despesasHTML = DB.despesas.map(item => `
+  const despesas = DB.despesas.map(item => `
     <tr>
       <td>${escapar(item.descricao)}</td>
       <td>${escapar(item.categoria)}</td>
@@ -705,7 +648,7 @@ function renderFinanceiro() {
 
             <tbody>
               ${
-                receitasHTML ||
+                receitas ||
                 `<tr>
                   <td colspan="4" class="empty">
                     Nenhuma receita cadastrada.
@@ -718,7 +661,7 @@ function renderFinanceiro() {
       </div>
 
       <div class="panel">
-        <h3>Despesas, custos fixos e variáveis</h3>
+        <h3>Despesas</h3>
 
         <div class="table-wrapper">
           <table class="table">
@@ -735,7 +678,7 @@ function renderFinanceiro() {
 
             <tbody>
               ${
-                despesasHTML ||
+                despesas ||
                 `<tr>
                   <td colspan="6" class="empty">
                     Nenhuma despesa cadastrada.
@@ -747,7 +690,7 @@ function renderFinanceiro() {
         </div>
 
         <div class="panel-header">
-          <strong>Total mensal</strong>
+          <strong>Total de despesas</strong>
           <strong class="red">${moeda(totalDespesas())}</strong>
         </div>
       </div>
@@ -761,8 +704,8 @@ function renderFinanceiro() {
         <form class="form" id="debtForm">
           <input
             class="input"
-            name="dividas"
             type="number"
+            name="dividas"
             min="0"
             step="0.01"
             value="${DB.dividas}"
@@ -834,7 +777,7 @@ function renderInvestimentos() {
           <table class="table">
             <thead>
               <tr>
-                <th>Investimento</th>
+                <th>Nome</th>
                 <th>Valor</th>
                 <th>Ação</th>
               </tr>
@@ -864,6 +807,7 @@ function renderInvestimentos() {
 function renderLimites() {
   const lista = DB.limites.map(item => {
     const gasto = gastoDaCategoria(item.categoria);
+
     const percentual = item.limite > 0
       ? gasto / item.limite * 100
       : 0;
@@ -877,6 +821,7 @@ function renderLimites() {
 
           <span>
             ${moeda(gasto)} / ${moeda(item.limite)}
+
             <button
               class="btn secondary editar-limite"
               data-id="${item.id}">
@@ -892,15 +837,15 @@ function renderLimites() {
           </i>
         </div>
 
-        ${
-          excedido
-            ? `<small class="red">
-                Limite excedido em ${moeda(gasto - item.limite)}
-              </small>`
-            : `<small class="muted">
-                ${numero(percentual)}% utilizado
-              </small>`
-        }
+        <small class="${excedido ? "red" : "muted"}">
+          ${
+            excedido
+              ? "Limite excedido em " +
+                moeda(gasto - item.limite)
+              : percentual.toFixed(1) +
+                "% utilizado"
+          }
+        </small>
       </div>
     `;
   }).join("");
@@ -975,7 +920,7 @@ function renderDesejos() {
 
           <p>
             Objetivo: ${moeda(item.valor)}
-            ${item.prazo ? ` · Prazo: ${escapar(item.prazo)}` : ""}
+            ${item.prazo ? " · Prazo: " + escapar(item.prazo) : ""}
           </p>
 
           <div class="progress">
@@ -1008,39 +953,33 @@ function renderDesejos() {
       ${resumoCards()}
 
       <div class="cards">
-        ${cartaoResumo(
-          "Total de desejos",
-          total,
-          "purple",
-          "♡"
-        )}
+        <div class="card metric">
+          <small>Total de desejos</small>
+          <strong class="purple">${moeda(total)}</strong>
+          <span class="icon">♡</span>
+        </div>
 
-        ${cartaoResumo(
-          "Já guardado",
-          guardado,
-          "green",
-          "✓"
-        )}
+        <div class="card metric">
+          <small>Já guardado</small>
+          <strong class="green">${moeda(guardado)}</strong>
+          <span class="icon">✓</span>
+        </div>
 
-        ${cartaoResumo(
-          "Falta guardar",
-          falta,
-          "yellow",
-          "🛒"
-        )}
+        <div class="card metric">
+          <small>Falta guardar</small>
+          <strong class="yellow">${moeda(falta)}</strong>
+          <span class="icon">🛒</span>
+        </div>
 
-        ${cartaoResumo(
-          "Metas cadastradas",
-          String(DB.desejos.length),
-          "purple",
-          "✨"
-        )}
+        <div class="card metric">
+          <small>Metas cadastradas</small>
+          <strong class="purple">${DB.desejos.length}</strong>
+          <span class="icon">✨</span>
+        </div>
       </div>
 
       <div class="panel">
-        <div class="panel-header">
-          <h3>✨ Meus desejos</h3>
-        </div>
+        <h3>✨ Meus desejos</h3>
 
         <form class="form" id="goalForm">
           <input
@@ -1086,148 +1025,153 @@ function renderDesejos() {
    EVENTOS
 ===================================================== */
 
-function conectarEventosDaPagina() {
-  document.querySelectorAll(".menu").forEach(botao => {
-    botao.onclick = () => {
-      carregarPagina(botao.dataset.page);
-    };
-  });
-
-  const financeForm = document.getElementById("financeForm");
+function conectarEventos() {
+  const financeForm =
+    document.getElementById("financeForm");
 
   if (financeForm) {
-    financeForm.onsubmit = event => {
+    financeForm.onsubmit = function(event) {
       event.preventDefault();
 
-      const form = new FormData(financeForm);
-      const valor = Number(form.get("valor"));
+      const dados = new FormData(financeForm);
+      const valor = Number(dados.get("valor"));
 
-      if (!form.get("descricao") || valor <= 0) {
-        mostrarToast("Preencha descrição e valor corretamente.");
+      if (!dados.get("descricao") || valor <= 0) {
+        mostrarToast("Preencha os dados corretamente.");
         return;
       }
 
-      const movimento = {
+      const item = {
         id: gerarId(),
-        descricao: form.get("descricao"),
-        categoria: form.get("categoria"),
+        descricao: dados.get("descricao"),
+        categoria: dados.get("categoria"),
         valor,
-        tipo: form.get("tipo") === "receita"
+        tipo: dados.get("tipo") === "receita"
           ? "Receita"
           : "Variável",
         pagamento: "Não informado",
         data: new Date().toISOString()
       };
 
-      if (form.get("tipo") === "receita") {
-        DB.receitas.push(movimento);
+      if (dados.get("tipo") === "receita") {
+        DB.receitas.push(item);
       } else {
-        DB.despesas.push(movimento);
+        DB.despesas.push(item);
       }
 
-      salvarBanco();
+      salvar();
       carregarPagina("financeiro");
       mostrarToast("Lançamento adicionado.");
     };
   }
 
-  const debtForm = document.getElementById("debtForm");
+  const debtForm =
+    document.getElementById("debtForm");
 
   if (debtForm) {
-    debtForm.onsubmit = event => {
+    debtForm.onsubmit = function(event) {
       event.preventDefault();
 
-      const form = new FormData(debtForm);
-      DB.dividas = Number(form.get("dividas")) || 0;
+      const dados = new FormData(debtForm);
 
-      salvarBanco();
+      DB.dividas = Number(dados.get("dividas")) || 0;
+
+      salvar();
       carregarPagina("financeiro");
       mostrarToast("Dívidas atualizadas.");
     };
   }
 
-  document.querySelectorAll(".excluir-receita").forEach(botao => {
-    botao.onclick = () => {
-      DB.receitas = DB.receitas.filter(
-        item => item.id !== botao.dataset.id
-      );
+  document
+    .querySelectorAll(".excluir-receita")
+    .forEach(botao => {
+      botao.onclick = function() {
+        DB.receitas = DB.receitas.filter(
+          item => item.id !== botao.dataset.id
+        );
 
-      salvarBanco();
-      carregarPagina("financeiro");
-      mostrarToast("Receita excluída.");
-    };
-  });
+        salvar();
+        carregarPagina("financeiro");
+        mostrarToast("Receita excluída.");
+      };
+    });
 
-  document.querySelectorAll(".excluir-despesa").forEach(botao => {
-    botao.onclick = () => {
-      DB.despesas = DB.despesas.filter(
-        item => item.id !== botao.dataset.id
-      );
+  document
+    .querySelectorAll(".excluir-despesa")
+    .forEach(botao => {
+      botao.onclick = function() {
+        DB.despesas = DB.despesas.filter(
+          item => item.id !== botao.dataset.id
+        );
 
-      salvarBanco();
-      carregarPagina("financeiro");
-      mostrarToast("Despesa excluída.");
-    };
-  });
+        salvar();
+        carregarPagina("financeiro");
+        mostrarToast("Despesa excluída.");
+      };
+    });
 
   const investmentForm =
     document.getElementById("investmentForm");
 
   if (investmentForm) {
-    investmentForm.onsubmit = event => {
+    investmentForm.onsubmit = function(event) {
       event.preventDefault();
 
-      const form = new FormData(investmentForm);
-      const valor = Number(form.get("valor"));
+      const dados = new FormData(investmentForm);
+      const valor = Number(dados.get("valor"));
 
-      if (!form.get("nome") || valor <= 0) {
-        mostrarToast("Preencha o investimento corretamente.");
+      if (!dados.get("nome") || valor <= 0) {
+        mostrarToast("Preencha os dados do investimento.");
         return;
       }
 
       DB.investimentos.push({
         id: gerarId(),
-        nome: form.get("nome"),
+        nome: dados.get("nome"),
         valor,
         data: new Date().toISOString()
       });
 
-      salvarBanco();
+      salvar();
       carregarPagina("investimentos");
       mostrarToast("Investimento adicionado.");
     };
   }
 
-  document.querySelectorAll(".excluir-investimento")
+  document
+    .querySelectorAll(".excluir-investimento")
     .forEach(botao => {
-      botao.onclick = () => {
+      botao.onclick = function() {
         DB.investimentos = DB.investimentos.filter(
           item => item.id !== botao.dataset.id
         );
 
-        salvarBanco();
+        salvar();
         carregarPagina("investimentos");
         mostrarToast("Investimento excluído.");
       };
     });
 
-  const limitForm = document.getElementById("limitForm");
+  const limitForm =
+    document.getElementById("limitForm");
 
   if (limitForm) {
-    limitForm.onsubmit = event => {
+    limitForm.onsubmit = function(event) {
       event.preventDefault();
 
-      const form = new FormData(limitForm);
-      const categoria = form.get("categoria");
-      const limite = Number(form.get("limite"));
+      const dados = new FormData(limitForm);
+      const categoria = dados.get("categoria");
+      const limite = Number(dados.get("limite"));
 
       if (!categoria || limite <= 0) {
-        mostrarToast("Informe categoria e limite.");
+        mostrarToast("Informe a categoria e o limite.");
         return;
       }
 
       const existente = DB.limites.find(
-        item => item.categoria.toLowerCase() === categoria.toLowerCase()
+        item =>
+          item.categoria.toLowerCase() ===
+          categoria.toLowerCase()
       );
 
       if (existente) {
@@ -1240,74 +1184,77 @@ function conectarEventosDaPagina() {
         });
       }
 
-      salvarBanco();
+      salvar();
       carregarPagina("limites");
       mostrarToast("Limite salvo.");
     };
   }
 
-  document.querySelectorAll(".editar-limite")
+  document
+    .querySelectorAll(".editar-limite")
     .forEach(botao => {
-      botao.onclick = () => {
+      botao.onclick = function() {
         const item = DB.limites.find(
           limite => limite.id === botao.dataset.id
         );
 
         if (!item) return;
 
-        const novoValor = Number(
+        const novoLimite = Number(
           prompt(
-            `Novo limite para ${item.categoria}:`,
+            "Novo limite para " + item.categoria,
             item.limite
           )
         );
 
-        if (Number.isNaN(novoValor) || novoValor < 0) {
+        if (Number.isNaN(novoLimite) || novoLimite < 0) {
           mostrarToast("Informe um limite válido.");
           return;
         }
 
-        item.limite = novoValor;
+        item.limite = novoLimite;
 
-        salvarBanco();
+        salvar();
         carregarPagina("limites");
         mostrarToast("Limite atualizado.");
       };
     });
 
-  const goalForm = document.getElementById("goalForm");
+  const goalForm =
+    document.getElementById("goalForm");
 
   if (goalForm) {
-    goalForm.onsubmit = event => {
+    goalForm.onsubmit = function(event) {
       event.preventDefault();
 
-      const form = new FormData(goalForm);
-      const valor = Number(form.get("valor"));
+      const dados = new FormData(goalForm);
+      const valor = Number(dados.get("valor"));
 
-      if (!form.get("nome") || valor <= 0) {
-        mostrarToast("Preencha o desejo e o valor.");
+      if (!dados.get("nome") || valor <= 0) {
+        mostrarToast("Preencha o nome e o valor da meta.");
         return;
       }
 
       DB.desejos.push({
         id: gerarId(),
-        nome: form.get("nome"),
+        nome: dados.get("nome"),
         valor,
         guardado: 0,
-        prazo: form.get("prazo"),
+        prazo: dados.get("prazo"),
         icone: "✨",
         data: new Date().toISOString()
       });
 
-      salvarBanco();
+      salvar();
       carregarPagina("desejos");
       mostrarToast("Desejo criado.");
     };
   }
 
-  document.querySelectorAll(".atualizar-desejo")
+  document
+    .querySelectorAll(".atualizar-desejo")
     .forEach(botao => {
-      botao.onclick = () => {
+      botao.onclick = function() {
         const desejo = DB.desejos.find(
           item => item.id === botao.dataset.id
         );
@@ -1331,20 +1278,21 @@ function conectarEventosDaPagina() {
           desejo.guardado + valor
         );
 
-        salvarBanco();
+        salvar();
         carregarPagina("desejos");
         mostrarToast("Meta atualizada.");
       };
     });
 
-  document.querySelectorAll(".excluir-desejo")
+  document
+    .querySelectorAll(".excluir-desejo")
     .forEach(botao => {
-      botao.onclick = () => {
+      botao.onclick = function() {
         DB.desejos = DB.desejos.filter(
           item => item.id !== botao.dataset.id
         );
 
-        salvarBanco();
+        salvar();
         carregarPagina("desejos");
         mostrarToast("Desejo excluído.");
       };
@@ -1352,51 +1300,182 @@ function conectarEventosDaPagina() {
 }
 
 /* =====================================================
-   NOTIFICAÇÕES E MÊS
+   PÁGINAS
+===================================================== */
+
+const paginas = {
+  dashboard: {
+    titulo: "Dashboard",
+    subtitulo: "Acompanhe sua evolução financeira",
+    render: renderDashboard
+  },
+
+  financeiro: {
+    titulo: "Meu Financeiro",
+    subtitulo: "Controle suas receitas, despesas e dívidas",
+    render: renderFinanceiro
+  },
+
+  investimentos: {
+    titulo: "Investimentos",
+    subtitulo: "Acompanhe seu patrimônio e seus aportes",
+    render: renderInvestimentos
+  },
+
+  limites: {
+    titulo: "Limites",
+    subtitulo: "Defina limites para seus gastos",
+    render: renderLimites
+  },
+
+  desejos: {
+    titulo: "Desejos",
+    subtitulo: "Planeje suas próximas conquistas",
+    render: renderDesejos
+  }
+};
+
+function carregarPagina(nome) {
+  if (!paginas[nome]) {
+    nome = "dashboard";
+  }
+
+  paginaAtual = nome;
+
+  const conteudo = document.getElementById("content");
+  const titulo = document.getElementById("pageTitle");
+  const subtitulo = document.getElementById("pageSubtitle");
+
+  if (!conteudo) {
+    console.error(
+      'Erro: o elemento com id="content" não foi encontrado.'
+    );
+    return;
+  }
+
+  conteudo.innerHTML = paginas[nome].render();
+
+  if (titulo) {
+    titulo.textContent = paginas[nome].titulo;
+  }
+
+  if (subtitulo) {
+    subtitulo.textContent = paginas[nome].subtitulo;
+  }
+
+  document.querySelectorAll(".menu").forEach(botao => {
+    botao.classList.toggle(
+      "active",
+      botao.dataset.page === nome
+    );
+
+    botao.onclick = function() {
+      carregarPagina(botao.dataset.page);
+    };
+  });
+
+  conectarEventos();
+}
+
+/* =====================================================
+   CONFIGURAÇÕES
 ===================================================== */
 
 function configurarNotificacoes() {
-  const botao = document.getElementById(
-    "notificationButton"
-  );
+  const botao =
+    document.getElementById("notificationButton");
 
   if (!botao) return;
 
-  botao.onclick = () => {
+  botao.onclick = function() {
     mostrarToast(
-      "Você tem contas próximas do vencimento."
+      "Você possui contas próximas do vencimento."
     );
   };
 }
 
 function configurarMes() {
-  const seletor = document.getElementById("monthSelect");
+  const seletor =
+    document.getElementById("monthSelect");
 
   if (!seletor) return;
 
-  const indiceSalvo = DB.config.mes;
+  const mesSalvo = Number(DB.config.mes);
 
-  if (indiceSalvo >= 0 && indiceSalvo < seletor.options.length) {
-    seletor.selectedIndex = indiceSalvo;
+  if (
+    mesSalvo >= 0 &&
+    mesSalvo < seletor.options.length
+  ) {
+    seletor.selectedIndex = mesSalvo;
   }
 
-  seletor.onchange = () => {
+  seletor.onchange = function() {
     DB.config.mes = seletor.selectedIndex;
-    salvarBanco();
+    salvar();
 
     mostrarToast(
-      `Período alterado para ${seletor.value}.`
+      "Período alterado para " + seletor.value
     );
   };
 }
 
 /* =====================================================
+   FUNÇÕES GLOBAIS
+===================================================== */
+
+window.removerLancamento = function(idLancamento) {
+  DB.receitas = DB.receitas.filter(
+    item => item.id !== idLancamento
+  );
+
+  DB.despesas = DB.despesas.filter(
+    item => item.id !== idLancamento
+  );
+
+  salvar();
+  carregarPagina("financeiro");
+  mostrarToast("Lançamento removido.");
+};
+
+window.removerInvestimento = function(idInvestimento) {
+  DB.investimentos = DB.investimentos.filter(
+    item => item.id !== idInvestimento
+  );
+
+  salvar();
+  carregarPagina("investimentos");
+  mostrarToast("Investimento removido.");
+};
+
+window.removerLimite = function(idLimite) {
+  DB.limites = DB.limites.filter(
+    item => item.id !== idLimite
+  );
+
+  salvar();
+  carregarPagina("limites");
+  mostrarToast("Limite removido.");
+};
+
+window.removerDesejo = function(idDesejo) {
+  DB.desejos = DB.desejos.filter(
+    item => item.id !== idDesejo
+  );
+
+  salvar();
+  carregarPagina("desejos");
+  mostrarToast("Desejo removido.");
+};
+
+/* =====================================================
    INICIALIZAÇÃO
 ===================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
-  configurarMenu();
-  configurarNotificacoes();
-  configurarMes();
-  carregarPagina("dashboard");
-});
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+    configurarNotificacoes();
+    configurarMes();
+    carregarPagina("dashboard");
+  }
+);
