@@ -13,8 +13,7 @@ import {
 
 import {
   moeda,
-  escapar,
-  percentual
+  escapar
 } from "./utils.js";
 
 import {
@@ -1133,10 +1132,6 @@ const paginas = {
   },
 
 
-  /* =====================================================
-     FINANCEIRO — MÓDULO REAL
-  ===================================================== */
-
   financeiro: {
 
     titulo:
@@ -1304,10 +1299,6 @@ function carregarPagina(nome) {
   }
 
 
-  /* =====================================================
-     TÍTULO
-  ===================================================== */
-
   if (titulo) {
 
     titulo.textContent =
@@ -1316,10 +1307,6 @@ function carregarPagina(nome) {
   }
 
 
-  /* =====================================================
-     SUBTÍTULO
-  ===================================================== */
-
   if (subtitulo) {
 
     subtitulo.textContent =
@@ -1327,10 +1314,6 @@ function carregarPagina(nome) {
 
   }
 
-
-  /* =====================================================
-     MENU ATIVO
-  ===================================================== */
 
   document
     .querySelectorAll(".menu")
@@ -1344,10 +1327,6 @@ function carregarPagina(nome) {
     });
 
 
-  /* =====================================================
-     MÓDULO FINANCEIRO
-  ===================================================== */
-
   if (
     paginas[nome].modulo ===
     "financeiro"
@@ -1360,10 +1339,6 @@ function carregarPagina(nome) {
   }
 
 
-  /* =====================================================
-     PÁGINAS NORMAIS
-  ===================================================== */
-
   if (
     typeof paginas[nome].render ===
     "function"
@@ -1374,10 +1349,6 @@ function carregarPagina(nome) {
 
   }
 
-
-  /* =====================================================
-     EVENTOS DO DASHBOARD
-  ===================================================== */
 
   configurarCategoriasDashboard();
 
@@ -1481,11 +1452,6 @@ function configurarMes() {
 
   }
 
-
-  /*
-    Evita adicionar o mesmo listener
-    caso a função seja chamada novamente.
-  */
 
   if (
     seletor.dataset.aureaConfigured ===
@@ -1663,10 +1629,6 @@ function gerarQuantidadeAlertas() {
 
     });
 
-
-  /*
-    Contas próximas do vencimento
-  */
 
   const hoje =
     new Date();
