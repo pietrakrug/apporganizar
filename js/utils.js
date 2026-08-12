@@ -1,1343 +1,1417 @@
 "use strict";
 
-/* =========================================================
-   AUREA
-   UTILS.JS
-   Funções utilitárias compartilhadas pelo sistema
-========================================================= */
+/* ============================================================
+   AUREA — DATABASE.JS
+   Banco de dados + LocalStorage
+   ============================================================ */
 
+const STORAGE_KEY = "AUREA_DB";
+const DB_VERSION = 2;
 
-/* =========================================================
-   MOEDA
-========================================================= */
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
 
-function moeda(valor) {
-
-  return Number(valor || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-
-}
-
-
-/* =========================================================
-   NÚMERO
-========================================================= */
-
-function numero(valor) {
-
-  const resultado = Number(valor);
-
-  return Number.isFinite(resultado)
-    ? resultado
-    : 0;
-
-}
-
-
-/* =========================================================
-   ID
-========================================================= */
-
-function gerarId(prefixo = "id") {
+function gerarId(prefixo = "item") {
 
   if (
     window.crypto &&
     typeof window.crypto.randomUUID === "function"
   ) {
-
     return `${prefixo}-${window.crypto.randomUUID()}`;
-
   }
 
-  return (
-    prefixo +
-    "-" +
-    Date.now() +
-    "-" +
-    Math.random()
-      .toString(16)
-      .slice(2)
-  );
-
+  return `${prefixo}-${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
 }
 
 
-/* =========================================================
-   ESCAPAR HTML
-========================================================= */
-
-function escapar(valor) {
-
-  return String(valor ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
-}
-
-
-/* =========================================================
+/* ============================================================
    DATA ATUAL
-========================================================= */
+   ============================================================ */
 
-function dataAtual() {
+function obterAgora() {
+  return new Date();
+}
 
-  const agora = new Date();
-
-  const ano =
-    agora.getFullYear();
-
-  const mes =
-    String(
-      agora.getMonth() + 1
-    ).padStart(2, "0");
-
-  const dia =
-    String(
-      agora.getDate()
-    ).padStart(2, "0");
-
-  return `${ano}-${mes}-${dia}`;
-
+function dataHoje() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 
-/* =========================================================
-   DATA / HORA
-========================================================= */
+/* ============================================================
+   BANCO INICIAL
+   ============================================================ */
 
-function dataHoraAtual() {
+function criarBancoInicial() {
 
-  return new Date().toISOString();
+  const agora = obterAgora();
 
-}
+  const ano = agora.getFullYear();
+  const mes = agora.getMonth();
 
+  return {
 
-/* =========================================================
-   FORMATAR DATA
-========================================================= */
+    versao: DB_VERSION,
 
-function formatarData(data) {
+    /* ========================================================
+       RECEITAS
+       ======================================================== */
 
-  if (!data) {
-    return "-";
-  }
+    receitas: [
 
-  const valor = new Date(data);
+      {
+        id: gerarId("receita"),
 
-  if (Number.isNaN(valor.getTime())) {
-    return "-";
-  }
+        descricao: "Salário principal",
 
-  return valor.toLocaleDateString(
-    "pt-BR"
-  );
+        valor: 6600,
 
-}
+        categoria: "Salário",
 
+        dataRecebimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-05`,
 
-/* =========================================================
-   FORMATAR DATA PARA INPUT
-========================================================= */
+        recorrencia: "Mensal",
 
-function formatarDataInput(data) {
+        observacao: "",
 
-  if (!data) {
-    return "";
-  }
+        mes,
 
-  const valor = new Date(data);
+        ano,
 
-  if (Number.isNaN(valor.getTime())) {
-    return "";
-  }
+        criadoEm: agora.toISOString(),
 
-  const ano =
-    valor.getFullYear();
+        atualizadoEm: agora.toISOString()
+      }
 
-  const mes =
-    String(
-      valor.getMonth() + 1
-    ).padStart(2, "0");
-
-  const dia =
-    String(
-      valor.getDate()
-    ).padStart(2, "0");
-
-  return `${ano}-${mes}-${dia}`;
-
-}
+    ],
 
 
-/* =========================================================
-   CONVERTER INPUT DE DATA
-========================================================= */
+    /* ========================================================
+       DESPESAS
+       ======================================================== */
 
-function dataDoInput(valor) {
+    despesas: [
 
-  if (!valor) {
-    return null;
-  }
+      {
+        id: gerarId("despesa"),
 
-  const partes =
-    valor.split("-");
+        descricao: "Aluguel",
 
-  if (partes.length !== 3) {
-    return null;
-  }
+        valor: 1300,
 
-  const ano =
-    Number(partes[0]);
+        categoria: "Moradia",
 
-  const mes =
-    Number(partes[1]) - 1;
+        tipo: "Fixa",
 
-  const dia =
-    Number(partes[2]);
+        vencimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-05`,
 
-  const data =
-    new Date(
-      ano,
+        dataPagamento: null,
+
+        formaPagamento: "Cartão de débito",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Net Claro",
+
+        valor: 70,
+
+        categoria: "Internet/Telefone",
+
+        tipo: "Fixa",
+
+        vencimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-10`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Academia",
+
+        valor: 150,
+
+        categoria: "Academia",
+
+        tipo: "Fixa",
+
+        vencimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-10`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Curso de inglês",
+
+        valor: 70,
+
+        categoria: "Educação",
+
+        tipo: "Fixa",
+
+        vencimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-15`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Água",
+
+        valor: 45,
+
+        categoria: "Contas da Casa",
+
+        tipo: "Fixa",
+
+        vencimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-12`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Transporte",
+
+        valor: 50,
+
+        categoria: "Transporte",
+
+        tipo: "Variável",
+
+        vencimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-20`,
+
+        dataPagamento: dataHoje(),
+
+        formaPagamento: "Pix",
+
+        status: "paga",
+
+        observacao: "",
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "iFood",
+
+        valor: 65,
+
+        categoria: "Delivery",
+
+        tipo: "Variável",
+
+        vencimento:
+          `${ano}-${String(mes + 1).padStart(2, "0")}-20`,
+
+        dataPagamento: dataHoje(),
+
+        formaPagamento: "Cartão",
+
+        status: "paga",
+
+        observacao: "",
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* ========================================================
+       CUSTOS FIXOS
+       ======================================================== */
+
+    custosFixos: [
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Aluguel",
+
+        valor: 1300,
+
+        categoria: "Moradia",
+
+        diaVencimento: 5,
+
+        formaPagamento: "Cartão de débito",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Net Claro",
+
+        valor: 70,
+
+        categoria: "Internet/Telefone",
+
+        diaVencimento: 10,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Academia",
+
+        valor: 150,
+
+        categoria: "Academia",
+
+        diaVencimento: 10,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Curso de inglês",
+
+        valor: 70,
+
+        categoria: "Educação",
+
+        diaVencimento: 15,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Água",
+
+        valor: 45,
+
+        categoria: "Contas da Casa",
+
+        diaVencimento: 12,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* ========================================================
+       INVESTIMENTOS
+       ======================================================== */
+
+    investimentos: [
+
+      {
+        id: gerarId("investimento"),
+
+        nome: "Investimentos existentes",
+
+        valor: 31500,
+
+        tipo: "Patrimônio",
+
+        instituicao: "",
+
+        data: dataHoje(),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* ========================================================
+       LIMITES
+       ======================================================== */
+
+    limites: [
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Alimentação",
+
+        limite: 800,
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Transporte",
+
+        limite: 250,
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Delivery",
+
+        limite: 180,
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Lazer",
+
+        limite: 300,
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Vestuário",
+
+        limite: 300,
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Beleza",
+
+        limite: 250,
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Pets",
+
+        limite: 200,
+
+        mes,
+
+        ano,
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* ========================================================
+       DESEJOS
+       ======================================================== */
+
+    desejos: [
+
+      {
+        id: gerarId("desejo"),
+
+        nome: "Apple iPad Wi-Fi 128 GB",
+
+        valor: 3399,
+
+        guardado: 1200,
+
+        dataDesejada: null,
+
+        prazoMeses: 5,
+
+        prioridade: "Alta",
+
+        categoria: "Tecnologia",
+
+        imagem: "",
+
+        icone: "📱",
+
+        observacao: "",
+
+        status: "Em andamento",
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* ========================================================
+       TAREFAS
+       ======================================================== */
+
+    tarefas: [
+
+      {
+        id: gerarId("tarefa"),
+
+        titulo: "Conferir saldo bancário",
+
+        categoria: "Financeiro",
+
+        prioridade: "Alta",
+
+        status: "pendente",
+
+        recorrente: true,
+
+        data: dataHoje(),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("tarefa"),
+
+        titulo: "Registrar despesas do dia",
+
+        categoria: "Financeiro",
+
+        prioridade: "Média",
+
+        status: "pendente",
+
+        recorrente: true,
+
+        data: dataHoje(),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("tarefa"),
+
+        titulo: "Conferir contas próximas do vencimento",
+
+        categoria: "Financeiro",
+
+        prioridade: "Alta",
+
+        status: "pendente",
+
+        recorrente: true,
+
+        data: dataHoje(),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* ========================================================
+       PLANEJAMENTOS
+       ======================================================== */
+
+    planejamentos: [],
+
+
+    /* ========================================================
+       RELATÓRIOS
+       ======================================================== */
+
+    relatorios: [],
+
+
+    /* ========================================================
+       DÍVIDAS
+       ======================================================== */
+
+    dividas: [],
+
+
+    /* ========================================================
+       CONFIGURAÇÕES
+       ======================================================== */
+
+    config: {
+
       mes,
-      dia
+
+      ano,
+
+      moeda: "BRL",
+
+      primeiroDiaSemana: 1
+
+    }
+
+  };
+}
+
+
+/* ============================================================
+   NORMALIZAR REGISTROS
+   ============================================================ */
+
+function normalizarBanco(banco) {
+
+  const inicial = criarBancoInicial();
+
+  const resultado = {
+
+    versao: DB_VERSION,
+
+    receitas: Array.isArray(banco?.receitas)
+      ? banco.receitas
+      : inicial.receitas,
+
+    despesas: Array.isArray(banco?.despesas)
+      ? banco.despesas
+      : inicial.despesas,
+
+    custosFixos: Array.isArray(banco?.custosFixos)
+      ? banco.custosFixos
+      : inicial.custosFixos,
+
+    investimentos: Array.isArray(banco?.investimentos)
+      ? banco.investimentos
+      : inicial.investimentos,
+
+    limites: Array.isArray(banco?.limites)
+      ? banco.limites
+      : inicial.limites,
+
+    desejos: Array.isArray(banco?.desejos)
+      ? banco.desejos
+      : inicial.desejos,
+
+    tarefas: Array.isArray(banco?.tarefas)
+      ? banco.tarefas
+      : inicial.tarefas,
+
+    planejamentos: Array.isArray(banco?.planejamentos)
+      ? banco.planejamentos
+      : [],
+
+    relatorios: Array.isArray(banco?.relatorios)
+      ? banco.relatorios
+      : [],
+
+    dividas: Array.isArray(banco?.dividas)
+      ? banco.dividas
+      : [],
+
+    config: {
+
+      ...inicial.config,
+
+      ...(banco?.config || {})
+
+    }
+
+  };
+
+
+  /* ========================================================
+     CORRIGIR VERSÃO
+     ======================================================== */
+
+  resultado.versao = DB_VERSION;
+
+
+  /* ========================================================
+     GARANTIR CONFIGURAÇÃO VÁLIDA
+     ======================================================== */
+
+  if (
+    !Number.isInteger(Number(resultado.config.mes)) ||
+    Number(resultado.config.mes) < 0 ||
+    Number(resultado.config.mes) > 11
+  ) {
+
+    resultado.config.mes =
+      inicial.config.mes;
+
+  }
+
+
+  if (
+    !Number.isInteger(Number(resultado.config.ano)) ||
+    Number(resultado.config.ano) < 2000
+  ) {
+
+    resultado.config.ano =
+      inicial.config.ano;
+
+  }
+
+
+  /* ========================================================
+     GARANTIR CAMPOS DAS DESPESAS
+     ======================================================== */
+
+  resultado.despesas =
+    resultado.despesas.map(despesa => ({
+
+      ...despesa,
+
+      id:
+        despesa.id ||
+        gerarId("despesa"),
+
+      descricao:
+        despesa.descricao || "Despesa",
+
+      valor:
+        Number(despesa.valor) || 0,
+
+      categoria:
+        despesa.categoria || "Outros",
+
+      tipo:
+        despesa.tipo || "Variável",
+
+      status:
+        despesa.status || "pendente",
+
+      formaPagamento:
+        despesa.formaPagamento || "Pix",
+
+      observacao:
+        despesa.observacao || "",
+
+      mes:
+        Number.isInteger(Number(despesa.mes))
+          ? Number(despesa.mes)
+          : resultado.config.mes,
+
+      ano:
+        Number.isInteger(Number(despesa.ano))
+          ? Number(despesa.ano)
+          : resultado.config.ano
+
+    }));
+
+
+  /* ========================================================
+     GARANTIR CAMPOS DAS RECEITAS
+     ======================================================== */
+
+  resultado.receitas =
+    resultado.receitas.map(receita => ({
+
+      ...receita,
+
+      id:
+        receita.id ||
+        gerarId("receita"),
+
+      descricao:
+        receita.descricao || "Receita",
+
+      valor:
+        Number(receita.valor) || 0,
+
+      categoria:
+        receita.categoria || "Outros",
+
+      recorrencia:
+        receita.recorrencia || "Única",
+
+      observacao:
+        receita.observacao || "",
+
+      mes:
+        Number.isInteger(Number(receita.mes))
+          ? Number(receita.mes)
+          : resultado.config.mes,
+
+      ano:
+        Number.isInteger(Number(receita.ano))
+          ? Number(receita.ano)
+          : resultado.config.ano
+
+    }));
+
+
+  /* ========================================================
+     GARANTIR CAMPOS DOS CUSTOS FIXOS
+     ======================================================== */
+
+  resultado.custosFixos =
+    resultado.custosFixos.map(custo => ({
+
+      ...custo,
+
+      id:
+        custo.id ||
+        gerarId("fixo"),
+
+      nome:
+        custo.nome || "Custo fixo",
+
+      valor:
+        Number(custo.valor) || 0,
+
+      categoria:
+        custo.categoria || "Outros",
+
+      diaVencimento:
+        Number(custo.diaVencimento) || 1,
+
+      formaPagamento:
+        custo.formaPagamento || "Pix",
+
+      recorrencia:
+        custo.recorrencia || "Mensal",
+
+      ativo:
+        custo.ativo !== false
+
+    }));
+
+
+  return resultado;
+}
+
+
+/* ============================================================
+   MIGRAÇÃO
+   ============================================================ */
+
+function migrarBanco(banco) {
+
+  if (!banco) {
+    return criarBancoInicial();
+  }
+
+
+  const versaoAtual =
+    Number(banco.versao || 1);
+
+
+  /* ========================================================
+     BANCO ANTIGO
+     ======================================================== */
+
+  if (versaoAtual < DB_VERSION) {
+
+    console.log(
+      `AUREA: migrando banco v${versaoAtual} → v${DB_VERSION}`
     );
 
-  if (
-    Number.isNaN(
-      data.getTime()
-    )
-  ) {
-    return null;
-  }
+    banco =
+      normalizarBanco(banco);
 
-  return data;
+    banco.versao =
+      DB_VERSION;
 
-}
-
-
-/* =========================================================
-   MÊS
-========================================================= */
-
-function obterMesAtual() {
-
-  return new Date().getMonth();
-
-}
-
-
-/* =========================================================
-   ANO
-========================================================= */
-
-function obterAnoAtual() {
-
-  return new Date().getFullYear();
-
-}
-
-
-/* =========================================================
-   NOME DO MÊS
-========================================================= */
-
-function nomeMes(
-  mes,
-  formato = "longo"
-) {
-
-  const nomesLongos = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro"
-  ];
-
-
-  const nomesCurtos = [
-    "Jan",
-    "Fev",
-    "Mar",
-    "Abr",
-    "Mai",
-    "Jun",
-    "Jul",
-    "Jul",
-    "Set",
-    "Out",
-    "Nov",
-    "Dez"
-  ];
-
-
-  const indice =
-    Number(mes);
-
-
-  if (
-    indice < 0 ||
-    indice > 11 ||
-    !Number.isInteger(indice)
-  ) {
-
-    return "";
-
+    return banco;
   }
 
 
-  return formato === "curto"
-    ? nomesCurtos[indice]
-    : nomesLongos[indice];
-
+  return normalizarBanco(banco);
 }
 
 
-/* =========================================================
-   PERÍODO
-========================================================= */
+/* ============================================================
+   CARREGAR BANCO
+   ============================================================ */
 
-function periodoTexto(
-  mes,
-  ano
-) {
+function carregarBanco() {
 
-  return `${nomeMes(mes)} de ${ano}`;
+  const dadosSalvos =
+    localStorage.getItem(STORAGE_KEY);
 
+
+  /* ========================================================
+     PRIMEIRO ACESSO
+     ======================================================== */
+
+  if (!dadosSalvos) {
+
+    const bancoInicial =
+      criarBancoInicial();
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(bancoInicial)
+    );
+
+    return bancoInicial;
+  }
+
+
+  /* ========================================================
+     BANCO EXISTENTE
+     ======================================================== */
+
+  try {
+
+    const banco =
+      JSON.parse(dadosSalvos);
+
+
+    const bancoMigrado =
+      migrarBanco(banco);
+
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(bancoMigrado)
+    );
+
+
+    return bancoMigrado;
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao carregar banco AUREA:",
+      erro
+    );
+
+
+    const bancoInicial =
+      criarBancoInicial();
+
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(bancoInicial)
+    );
+
+
+    return bancoInicial;
+  }
 }
 
 
-/* =========================================================
-   COMPARAR PERÍODO
-========================================================= */
+/* ============================================================
+   BANCO GLOBAL
+   ============================================================ */
 
-function mesmoPeriodo(
+let DB =
+  carregarBanco();
+
+
+/* ============================================================
+   SALVAR BANCO
+   ============================================================ */
+
+function salvarBanco() {
+
+  DB.versao =
+    DB_VERSION;
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(DB)
+  );
+}
+
+
+/* ============================================================
+   RESETAR BANCO
+   ============================================================ */
+
+function resetarBanco() {
+
+  const confirmacao =
+    confirm(
+      "Isso apagará todos os dados do AUREA. Deseja continuar?"
+    );
+
+
+  if (!confirmacao) {
+    return false;
+  }
+
+
+  DB =
+    criarBancoInicial();
+
+
+  salvarBanco();
+
+
+  return true;
+}
+
+
+/* ============================================================
+   CONSULTAS POR PERÍODO
+   ============================================================ */
+
+function pertenceAoMes(
   item,
   mes,
   ano
 ) {
 
-  if (!item) {
+  return (
+
+    Number(item?.mes) === Number(mes) &&
+
+    Number(item?.ano) === Number(ano)
+
+  );
+}
+
+
+function obterMesAtual() {
+
+  return Number(
+    DB.config?.mes
+  );
+}
+
+
+function obterAnoAtual() {
+
+  return Number(
+    DB.config?.ano
+  );
+}
+
+
+function obterPeriodoAtual() {
+
+  return {
+
+    mes:
+      obterMesAtual(),
+
+    ano:
+      obterAnoAtual()
+
+  };
+}
+
+
+function definirPeriodo(
+  mes,
+  ano
+) {
+
+  DB.config.mes =
+    Number(mes);
+
+  DB.config.ano =
+    Number(ano);
+
+  salvarBanco();
+}
+
+
+/* ============================================================
+   GERENCIAMENTO GENÉRICO
+   ============================================================ */
+
+function adicionarRegistro(
+  colecao,
+  registro
+) {
+
+  if (
+    !Array.isArray(DB[colecao])
+  ) {
+
+    console.error(
+      `Coleção "${colecao}" não existe no banco.`
+    );
+
+    return null;
+  }
+
+
+  const agora =
+    new Date().toISOString();
+
+
+  const novoRegistro = {
+
+    id:
+      registro?.id ||
+      gerarId(colecao),
+
+    ...registro,
+
+    criadoEm:
+      registro?.criadoEm ||
+      agora,
+
+    atualizadoEm:
+      agora
+
+  };
+
+
+  DB[colecao].push(
+    novoRegistro
+  );
+
+
+  salvarBanco();
+
+
+  return novoRegistro;
+}
+
+
+/* ============================================================
+   ATUALIZAR
+   ============================================================ */
+
+function atualizarRegistro(
+  colecao,
+  id,
+  alteracoes
+) {
+
+  if (
+    !Array.isArray(DB[colecao])
+  ) {
+
+    console.error(
+      `Coleção "${colecao}" não existe.`
+    );
+
+    return null;
+  }
+
+
+  const indice =
+    DB[colecao].findIndex(
+      item =>
+        String(item.id) === String(id)
+    );
+
+
+  if (indice === -1) {
+    return null;
+  }
+
+
+  DB[colecao][indice] = {
+
+    ...DB[colecao][indice],
+
+    ...alteracoes,
+
+    atualizadoEm:
+      new Date().toISOString()
+
+  };
+
+
+  salvarBanco();
+
+
+  return DB[colecao][indice];
+}
+
+
+/* ============================================================
+   EXCLUIR
+   ============================================================ */
+
+function excluirRegistro(
+  colecao,
+  id
+) {
+
+  if (
+    !Array.isArray(DB[colecao])
+  ) {
+
     return false;
   }
 
 
-  /*
-    Registros novos devem possuir
-    mes e ano.
-  */
+  const tamanhoAntes =
+    DB[colecao].length;
 
-  if (
-    item.mes !== undefined &&
-    item.ano !== undefined
-  ) {
 
-    return (
-      Number(item.mes) === Number(mes) &&
-      Number(item.ano) === Number(ano)
+  DB[colecao] =
+    DB[colecao].filter(
+      item =>
+        String(item.id) !== String(id)
     );
 
+
+  const removido =
+    DB[colecao].length <
+    tamanhoAntes;
+
+
+  if (removido) {
+    salvarBanco();
   }
 
 
-  /*
-    Compatibilidade com registros
-    antigos que possuem apenas data.
-  */
-
-  if (item.data) {
-
-    const data =
-      new Date(item.data);
-
-    if (
-      Number.isNaN(
-        data.getTime()
-      )
-    ) {
-
-      return false;
-
-    }
-
-
-    return (
-      data.getMonth() === Number(mes) &&
-      data.getFullYear() === Number(ano)
-    );
-
-  }
-
-
-  return false;
-
+  return removido;
 }
 
 
-/* =========================================================
-   FILTRAR POR PERÍODO
-========================================================= */
+/* ============================================================
+   BUSCAR
+   ============================================================ */
 
-function filtrarPeriodo(
-  lista,
-  mes,
-  ano
+function buscarRegistro(
+  colecao,
+  id
 ) {
-
-  if (!Array.isArray(lista)) {
-    return [];
-  }
-
-  return lista.filter(
-    item =>
-      mesmoPeriodo(
-        item,
-        mes,
-        ano
-      )
-  );
-
-}
-
-
-/* =========================================================
-   FILTRAR POR MÊS E ANO ATUAIS
-========================================================= */
-
-function filtrarMesAtual(
-  lista
-) {
-
-  const hoje =
-    new Date();
-
-  return filtrarPeriodo(
-    lista,
-    hoje.getMonth(),
-    hoje.getFullYear()
-  );
-
-}
-
-
-/* =========================================================
-   PERCENTUAL
-========================================================= */
-
-function percentual(
-  valor,
-  total
-) {
-
-  const numeroValor =
-    Number(valor || 0);
-
-  const numeroTotal =
-    Number(total || 0);
-
 
   if (
-    numeroTotal <= 0
+    !Array.isArray(DB[colecao])
   ) {
 
-    return 0;
-
+    return null;
   }
 
 
   return (
-    numeroValor /
-    numeroTotal
-  ) * 100;
-
-}
-
-
-/* =========================================================
-   PERCENTUAL LIMITADO
-========================================================= */
-
-function percentualLimitado(
-  valor,
-  total
-) {
-
-  return Math.min(
-    100,
-    Math.max(
-      0,
-      percentual(
-        valor,
-        total
-      )
-    )
+    DB[colecao].find(
+      item =>
+        String(item.id) === String(id)
+    ) || null
   );
-
 }
 
 
-/* =========================================================
-   DIFERENÇA PERCENTUAL
-========================================================= */
-
-function variacaoPercentual(
-  atual,
-  anterior
-) {
-
-  const valorAtual =
-    Number(atual || 0);
-
-  const valorAnterior =
-    Number(anterior || 0);
-
-
-  if (
-    valorAnterior === 0
-  ) {
-
-    if (
-      valorAtual === 0
-    ) {
-      return 0;
-    }
-
-    return 100;
-
-  }
-
-
-  return (
-    (
-      valorAtual -
-      valorAnterior
-    ) /
-    Math.abs(valorAnterior)
-  ) * 100;
-
-}
-
-
-/* =========================================================
-   TEXTO DE VARIAÇÃO
-========================================================= */
-
-function textoVariacao(
-  atual,
-  anterior
-) {
-
-  const variacao =
-    variacaoPercentual(
-      atual,
-      anterior
-    );
-
-
-  if (
-    variacao > 0
-  ) {
-
-    return `+${variacao.toFixed(2)}%`;
-
-  }
-
-
-  return `${variacao.toFixed(2)}%`;
-
-}
-
-
-/* =========================================================
-   SOMAR VALORES
-========================================================= */
-
-function somar(
-  lista,
-  campo = "valor"
-) {
-
-  if (!Array.isArray(lista)) {
-    return 0;
-  }
-
-
-  return lista.reduce(
-    (
-      total,
-      item
-    ) => {
-
-      return (
-        total +
-        Number(
-          item?.[campo] || 0
-        )
-      );
-
-    },
-    0
-  );
-
-}
-
-
-/* =========================================================
-   MÉDIA
-========================================================= */
-
-function media(
-  lista,
-  campo = "valor"
-) {
-
-  if (
-    !Array.isArray(lista) ||
-    lista.length === 0
-  ) {
-
-    return 0;
-
-  }
-
-
-  return (
-    somar(
-      lista,
-      campo
-    ) /
-    lista.length
-  );
-
-}
-
-
-/* =========================================================
-   DIAS NO MÊS
-========================================================= */
-
-function diasNoMes(
-  mes,
-  ano
-) {
-
-  return new Date(
-    Number(ano),
-    Number(mes) + 1,
-    0
-  ).getDate();
-
-}
-
-
-/* =========================================================
-   DIAS RESTANTES NO MÊS
-========================================================= */
-
-function diasRestantesNoMes(
-  mes,
-  ano
-) {
-
-  const hoje =
-    new Date();
-
-  const mesNumero =
-    Number(mes);
-
-  const anoNumero =
-    Number(ano);
-
-
-  /*
-    Se for um mês passado,
-    não há dias restantes.
-  */
-
-  if (
-    anoNumero < hoje.getFullYear() ||
-    (
-      anoNumero ===
-      hoje.getFullYear() &&
-      mesNumero <
-      hoje.getMonth()
-    )
-  ) {
-
-    return 0;
-
-  }
-
-
-  /*
-    Se for um mês futuro,
-    retorna todos os dias.
-  */
-
-  if (
-    anoNumero >
-    hoje.getFullYear() ||
-    (
-      anoNumero ===
-      hoje.getFullYear() &&
-      mesNumero >
-      hoje.getMonth()
-    )
-  ) {
-
-    return diasNoMes(
-      mesNumero,
-      anoNumero
-    );
-
-  }
-
-
-  return Math.max(
-    0,
-    diasNoMes(
-      mesNumero,
-      anoNumero
-    ) -
-    hoje.getDate()
-  );
-
-}
-
-
-/* =========================================================
-   MÉDIA DIÁRIA DISPONÍVEL
-========================================================= */
-
-function mediaDiaria(
-  valor,
-  dias
-) {
-
-  const numeroValor =
-    Number(valor || 0);
-
-  const numeroDias =
-    Number(dias || 0);
-
-
-  if (
-    numeroDias <= 0
-  ) {
-
-    return 0;
-
-  }
-
-
-  return (
-    numeroValor /
-    numeroDias
-  );
-
-}
-
-
-/* =========================================================
-   STATUS DE LIMITE
-========================================================= */
-
-function statusLimite(
-  gasto,
-  limite
-) {
-
-  const valorGasto =
-    Number(gasto || 0);
-
-  const valorLimite =
-    Number(limite || 0);
-
-
-  if (
-    valorLimite <= 0
-  ) {
-
-    return {
-      status: "sem-limite",
-      percentual: 0,
-      restante: 0
-    };
-
-  }
-
-
-  const percentualUso =
-    percentual(
-      valorGasto,
-      valorLimite
-    );
-
-
-  const restante =
-    valorLimite -
-    valorGasto;
-
-
-  if (
-    valorGasto >
-    valorLimite
-  ) {
-
-    return {
-      status: "excedido",
-      percentual: percentualUso,
-      restante
-    };
-
-  }
-
-
-  if (
-    percentualUso >= 90
-  ) {
-
-    return {
-      status: "critico",
-      percentual: percentualUso,
-      restante
-    };
-
-  }
-
-
-  if (
-    percentualUso >= 80
-  ) {
-
-    return {
-      status: "atencao",
-      percentual: percentualUso,
-      restante
-    };
-
-  }
-
-
-  return {
-    status: "normal",
-    percentual: percentualUso,
-    restante
-  };
-
-}
-
-
-/* =========================================================
-   STATUS DE META
-========================================================= */
-
-function statusMeta(
-  valor,
-  guardado
-) {
-
-  const objetivo =
-    Number(valor || 0);
-
-  const economizado =
-    Number(guardado || 0);
-
-
-  if (
-    objetivo <= 0
-  ) {
-
-    return {
-      status: "invalida",
-      percentual: 0,
-      restante: 0
-    };
-
-  }
-
-
-  const percentualGuardado =
-    percentual(
-      economizado,
-      objetivo
-    );
-
-
-  const restante =
-    Math.max(
-      0,
-      objetivo -
-      economizado
-    );
-
-
-  if (
-    economizado >= objetivo
-  ) {
-
-    return {
-      status: "concluida",
-      percentual: 100,
-      restante: 0
-    };
-
-  }
-
-
-  return {
-    status: "em-andamento",
-    percentual:
-      Math.min(
-        100,
-        percentualGuardado
-      ),
-    restante
-  };
-
-}
-
-
-/* =========================================================
-   PRAZO EM MESES
-========================================================= */
-
-function extrairMeses(
-  prazo
-) {
-
-  if (
-    prazo === null ||
-    prazo === undefined
-  ) {
-
-    return 0;
-
-  }
-
-
-  /*
-    Aceita:
-
-    "5"
-    "5 meses"
-    "5 mês"
-  */
-
-  const texto =
-    String(prazo)
-      .toLowerCase()
-      .trim();
-
-
-  const resultado =
-    texto.match(
-      /(\d+(?:[.,]\d+)?)/
-    );
-
-
-  if (!resultado) {
-    return 0;
-  }
-
-
-  return Number(
-    resultado[1]
-      .replace(",", ".")
-  );
-
-}
-
-
-/* =========================================================
-   CÁLCULO DE META
-========================================================= */
-
-function calcularMeta(
-  valor,
-  guardado,
-  meses
-) {
-
-  const objetivo =
-    Number(valor || 0);
-
-  const economizado =
-    Number(guardado || 0);
-
-  const prazo =
-    Number(meses || 0);
-
-
-  const restante =
-    Math.max(
-      0,
-      objetivo -
-      economizado
-    );
-
-
-  const mensal =
-    prazo > 0
-      ? restante / prazo
-      : 0;
-
-
-  const semanal =
-    mensal * 12 / 52;
-
-
-  return {
-
-    valor: objetivo,
-
-    guardado:
-      economizado,
-
-    restante,
-
-    meses:
-      prazo,
-
-    mensal,
-
-    semanal,
-
-    percentual:
-      objetivo > 0
-        ? Math.min(
-            100,
-            economizado /
-            objetivo *
-            100
-          )
-        : 0
-
-  };
-
-}
-
-
-/* =========================================================
-   ORDENAR POR DATA
-========================================================= */
-
-function ordenarPorData(
-  lista,
-  crescente = false
-) {
-
-  if (!Array.isArray(lista)) {
-    return [];
-  }
-
-
-  return [...lista].sort(
-    (
-      a,
-      b
-    ) => {
-
-      const dataA =
-        new Date(
-          a?.data ||
-          a?.vencimento ||
-          0
-        ).getTime();
-
-
-      const dataB =
-        new Date(
-          b?.data ||
-          b?.vencimento ||
-          0
-        ).getTime();
-
-
-      return crescente
-        ? dataA - dataB
-        : dataB - dataA;
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   ORDENAR POR VALOR
-========================================================= */
-
-function ordenarPorValor(
-  lista,
-  crescente = false
-) {
-
-  if (!Array.isArray(lista)) {
-    return [];
-  }
-
-
-  return [...lista].sort(
-    (
-      a,
-      b
-    ) => {
-
-      const valorA =
-        Number(
-          a?.valor || 0
-        );
-
-      const valorB =
-        Number(
-          b?.valor || 0
-        );
-
-
-      return crescente
-        ? valorA - valorB
-        : valorB - valorA;
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   AGRUPAR POR CATEGORIA
-========================================================= */
-
-function agruparPorCategoria(
-  lista,
-  campoValor = "valor"
-) {
-
-  const resultado = {};
-
-
-  if (!Array.isArray(lista)) {
-    return resultado;
-  }
-
-
-  lista.forEach(
-    item => {
-
-      const categoria =
-        item?.categoria ||
-        "Outros";
-
-
-      if (
-        !resultado[categoria]
-      ) {
-
-        resultado[categoria] =
-          0;
-
-      }
-
-
-      resultado[categoria] +=
-        Number(
-          item?.[campoValor] ||
-          0
-        );
-
-    }
-  );
-
-
-  return resultado;
-
-}
-
-
-/* =========================================================
-   CAPITALIZAR TEXTO
-========================================================= */
-
-function capitalizar(
-  texto
-) {
-
-  if (!texto) {
-    return "";
-  }
-
-
-  return String(texto)
-    .charAt(0)
-    .toUpperCase() +
-    String(texto)
-      .slice(1);
-
-}
-
-
-/* =========================================================
-   VALOR VÁLIDO
-========================================================= */
-
-function valorValido(
-  valor
-) {
-
-  const numeroValor =
-    Number(valor);
-
-
-  return (
-    Number.isFinite(
-      numeroValor
-    ) &&
-    numeroValor >= 0
-  );
-
-}
-
-
-/* =========================================================
-   CAMPO OBRIGATÓRIO
-========================================================= */
-
-function campoPreenchido(
-  valor
-) {
-
-  return (
-    valor !== null &&
-    valor !== undefined &&
-    String(valor).trim() !== ""
-  );
-
-}
-
-
-/* =========================================================
-   DEBOUNCE
-========================================================= */
-
-function debounce(
-  funcao,
-  atraso = 300
-) {
-
-  let timer;
-
-
-  return function (...args) {
-
-    clearTimeout(timer);
-
-
-    timer = setTimeout(
-      () => {
-
-        funcao.apply(
-          this,
-          args
-        );
-
-      },
-      atraso
-    );
-
-  };
-
-}
-
-
-/* =========================================================
-   EXPORTAÇÕES
-========================================================= */
+/* ============================================================
+   EXPORTAÇÃO
+   ============================================================ */
 
 export {
 
-  moeda,
+  STORAGE_KEY,
 
-  numero,
+  DB,
+
+  DB_VERSION,
 
   gerarId,
 
-  escapar,
+  criarBancoInicial,
 
-  dataAtual,
+  carregarBanco,
 
-  dataHoraAtual,
+  migrarBanco,
 
-  formatarData,
+  normalizarBanco,
 
-  formatarDataInput,
+  salvarBanco,
 
-  dataDoInput,
+  resetarBanco,
+
+  pertenceAoMes,
 
   obterMesAtual,
 
   obterAnoAtual,
 
-  nomeMes,
+  obterPeriodoAtual,
 
-  periodoTexto,
+  definirPeriodo,
 
-  mesmoPeriodo,
+  adicionarRegistro,
 
-  filtrarPeriodo,
+  atualizarRegistro,
 
-  filtrarMesAtual,
+  excluirRegistro,
 
-  percentual,
-
-  percentualLimitado,
-
-  variacaoPercentual,
-
-  textoVariacao,
-
-  somar,
-
-  media,
-
-  diasNoMes,
-
-  diasRestantesNoMes,
-
-  mediaDiaria,
-
-  statusLimite,
-
-  statusMeta,
-
-  extrairMeses,
-
-  calcularMeta,
-
-  ordenarPorData,
-
-  ordenarPorValor,
-
-  agruparPorCategoria,
-
-  capitalizar,
-
-  valorValido,
-
-  campoPreenchido,
-
-  debounce
+  buscarRegistro
 
 };
