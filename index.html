@@ -7,7 +7,6 @@
 
   <title>AUREA | Planejamento Financeiro</title>
 
-  <!-- Fonte -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -16,7 +15,6 @@
     rel="stylesheet"
   >
 
-  <!-- CSS -->
   <link rel="stylesheet" href="styles/global.css">
 </head>
 
@@ -24,21 +22,19 @@
 
   <div class="app">
 
-    <!-- =====================================================
+    <!-- ==========================================
          SIDEBAR
-    ====================================================== -->
+    =========================================== -->
 
     <aside class="sidebar">
 
       <div>
 
-        <!-- Marca -->
         <div class="brand">
           <h1>AUREA</h1>
           <p>Planejamento para uma vida organizada</p>
         </div>
 
-        <!-- Navegação -->
         <nav class="menu-list">
 
           <button
@@ -86,28 +82,63 @@
             Relatórios
           </button>
 
+          <button
+            class="menu"
+            data-page="investimentos"
+            type="button"
+          >
+            <span>📈</span>
+            Investimentos
+          </button>
+
+          <button
+            class="menu"
+            data-page="limites"
+            type="button"
+          >
+            <span>🎯</span>
+            Limites
+          </button>
+
+          <button
+            class="menu"
+            data-page="desejos"
+            type="button"
+          >
+            <span>✨</span>
+            Desejos
+          </button>
+
         </nav>
 
       </div>
 
-      <!-- Perfil / Plano -->
+
+      <!-- ========================================
+           PERFIL
+      ========================================= -->
+
       <div class="profile">
+
         <p>Plano atual</p>
+
         <strong>AUREA Premium</strong>
+
       </div>
 
     </aside>
 
 
-    <!-- =====================================================
+    <!-- ==========================================
          CONTEÚDO PRINCIPAL
-    ====================================================== -->
+    =========================================== -->
 
     <main class="content">
 
-      <!-- ===================================================
+
+      <!-- ========================================
            TOPBAR
-      ==================================================== -->
+      ========================================= -->
 
       <header class="topbar">
 
@@ -126,7 +157,7 @@
 
         <div class="actions">
 
-          <!-- Seleção de período -->
+          <!-- Seletor de mês -->
 
           <select
             class="select"
@@ -134,18 +165,53 @@
             aria-label="Selecionar mês"
           >
 
-            <option value="0">Janeiro 2026</option>
-            <option value="1">Fevereiro 2026</option>
-            <option value="2">Março 2026</option>
-            <option value="3">Abril 2026</option>
-            <option value="4">Maio 2026</option>
-            <option value="5">Junho 2026</option>
-            <option value="6">Julho 2026</option>
-            <option value="7">Agosto 2026</option>
-            <option value="8">Setembro 2026</option>
-            <option value="9">Outubro 2026</option>
-            <option value="10">Novembro 2026</option>
-            <option value="11">Dezembro 2026</option>
+            <option value="0">
+              Janeiro 2026
+            </option>
+
+            <option value="1">
+              Fevereiro 2026
+            </option>
+
+            <option value="2">
+              Março 2026
+            </option>
+
+            <option value="3">
+              Abril 2026
+            </option>
+
+            <option value="4">
+              Maio 2026
+            </option>
+
+            <option value="5">
+              Junho 2026
+            </option>
+
+            <option value="6">
+              Julho 2026
+            </option>
+
+            <option value="7">
+              Agosto 2026
+            </option>
+
+            <option value="8">
+              Setembro 2026
+            </option>
+
+            <option value="9">
+              Outubro 2026
+            </option>
+
+            <option value="10">
+              Novembro 2026
+            </option>
+
+            <option value="11">
+              Dezembro 2026
+            </option>
 
           </select>
 
@@ -166,28 +232,24 @@
       </header>
 
 
-      <!-- ===================================================
-           ÁREA DINÂMICA
-           
-           O JavaScript irá inserir aqui:
-           
-           Dashboard
-           Meu Financeiro
-           Planejamento
-           Tarefas
-           Relatórios
-      ==================================================== -->
+      <!-- ==========================================
+           ÁREA DINÂMICA DO APP
+      =========================================== -->
 
-      <section id="content"></section>
+      <section
+        id="content"
+        aria-live="polite"
+      ></section>
+
 
     </main>
 
   </div>
 
 
-  <!-- =====================================================
-       TOAST / NOTIFICAÇÕES
-  ====================================================== -->
+  <!-- ============================================
+       TOAST / MENSAGENS
+  ============================================= -->
 
   <div
     class="toast"
@@ -197,15 +259,18 @@
   ></div>
 
 
-  <!-- =====================================================
+  <!-- ============================================
        JAVASCRIPT
        
        IMPORTANTE:
-       O main.js agora será o ponto de entrada da aplicação.
-       Os demais módulos serão carregados por ele.
-  ====================================================== -->
+       Os arquivos são carregados como módulos.
+       O main.js será o ponto de entrada.
+  ============================================= -->
 
-  <script type="module" src="js/main.js"></script>
+  <script
+    type="module"
+    src="js/main.js"
+  ></script>
 
 </body>
 
