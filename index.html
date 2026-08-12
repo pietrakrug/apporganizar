@@ -22,9 +22,9 @@
 
   <div class="app">
 
-    <!-- ==========================================
+    <!-- =====================================================
          SIDEBAR
-    =========================================== -->
+    ====================================================== -->
 
     <aside class="sidebar">
 
@@ -113,10 +113,9 @@
 
       </div>
 
-
-      <!-- ========================================
+      <!-- =====================================================
            PERFIL
-      ========================================= -->
+      ====================================================== -->
 
       <div class="profile">
 
@@ -129,16 +128,15 @@
     </aside>
 
 
-    <!-- ==========================================
+    <!-- =====================================================
          CONTEÚDO PRINCIPAL
-    =========================================== -->
+    ====================================================== -->
 
     <main class="content">
 
-
-      <!-- ========================================
+      <!-- ===================================================
            TOPBAR
-      ========================================= -->
+      ==================================================== -->
 
       <header class="topbar">
 
@@ -157,7 +155,7 @@
 
         <div class="actions">
 
-          <!-- Seletor de mês -->
+          <!-- SELETOR DE MÊS -->
 
           <select
             class="select"
@@ -165,58 +163,23 @@
             aria-label="Selecionar mês"
           >
 
-            <option value="0">
-              Janeiro 2026
-            </option>
-
-            <option value="1">
-              Fevereiro 2026
-            </option>
-
-            <option value="2">
-              Março 2026
-            </option>
-
-            <option value="3">
-              Abril 2026
-            </option>
-
-            <option value="4">
-              Maio 2026
-            </option>
-
-            <option value="5">
-              Junho 2026
-            </option>
-
-            <option value="6">
-              Julho 2026
-            </option>
-
-            <option value="7">
-              Agosto 2026
-            </option>
-
-            <option value="8">
-              Setembro 2026
-            </option>
-
-            <option value="9">
-              Outubro 2026
-            </option>
-
-            <option value="10">
-              Novembro 2026
-            </option>
-
-            <option value="11">
-              Dezembro 2026
-            </option>
+            <option value="0">Janeiro 2026</option>
+            <option value="1">Fevereiro 2026</option>
+            <option value="2">Março 2026</option>
+            <option value="3">Abril 2026</option>
+            <option value="4">Maio 2026</option>
+            <option value="5">Junho 2026</option>
+            <option value="6">Julho 2026</option>
+            <option value="7">Agosto 2026</option>
+            <option value="8">Setembro 2026</option>
+            <option value="9">Outubro 2026</option>
+            <option value="10">Novembro 2026</option>
+            <option value="11">Dezembro 2026</option>
 
           </select>
 
 
-          <!-- Notificações -->
+          <!-- NOTIFICAÇÕES -->
 
           <button
             class="bell"
@@ -232,24 +195,31 @@
       </header>
 
 
-      <!-- ==========================================
-           ÁREA DINÂMICA DO APP
-      =========================================== -->
+      <!-- ===================================================
+           ÁREA DINÂMICA
+           
+           O JavaScript irá inserir aqui:
+           
+           Dashboard
+           Meu Financeiro
+           Planejamento
+           Tarefas
+           Relatórios
+           Investimentos
+           Limites
+           Desejos
+      ==================================================== -->
 
-      <section
-        id="content"
-        aria-live="polite"
-      ></section>
-
+      <section id="content"></section>
 
     </main>
 
   </div>
 
 
-  <!-- ============================================
-       TOAST / MENSAGENS
-  ============================================= -->
+  <!-- =====================================================
+       TOAST / NOTIFICAÇÕES
+  ====================================================== -->
 
   <div
     class="toast"
@@ -259,18 +229,24 @@
   ></div>
 
 
-  <!-- ============================================
+  <!-- =====================================================
        JAVASCRIPT
        
-       IMPORTANTE:
-       Os arquivos são carregados como módulos.
-       O main.js será o ponto de entrada.
-  ============================================= -->
+       A ordem importa.
+       
+       1. database.js
+          → cria/carrega o banco DB
 
-  <script
-    type="module"
-    src="js/main.js"
-  ></script>
+       2. utils.js
+          → funções auxiliares
+
+       3. main.js
+          → controla a aplicação
+  ====================================================== -->
+
+  <script src="js/database.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/main.js"></script>
 
 </body>
 
