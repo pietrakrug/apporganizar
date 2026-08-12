@@ -11,35 +11,23 @@ import {
   salvarBanco
 } from "./database.js";
 
+import {
+  moeda,
+  escapar,
+  percentual
+} from "./utils.js";
+
 
 /* =========================================================
-   ESTADO DA APLICAÇÃO
+   ESTADO
 ========================================================= */
 
 let paginaAtual = "dashboard";
 
 
 /* =========================================================
-   UTILITÁRIOS
+   TOAST
 ========================================================= */
-
-function moeda(valor) {
-  return Number(valor || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-}
-
-
-function escapar(valor) {
-  return String(valor ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 
 function mostrarToast(mensagem) {
 
@@ -51,12 +39,11 @@ function mostrarToast(mensagem) {
   }
 
   toast.textContent = mensagem;
-
   toast.classList.add("show");
 
-  clearTimeout(window.toastTimer);
+  clearTimeout(window.aureaToastTimer);
 
-  window.toastTimer = setTimeout(() => {
+  window.aureaToastTimer = setTimeout(() => {
     toast.classList.remove("show");
   }, 2500);
 }
@@ -74,6 +61,7 @@ function obterMesSelecionado() {
 
   return Number(
     DB.config.mes ??
+    DB.config.mesAtual ??
     new Date().getMonth()
   );
 }
@@ -87,29 +75,19 @@ function obterAnoSelecionado() {
 
   return Number(
     DB.config.ano ??
+    DB.config.anoAtual ??
     new Date().getFullYear()
   );
 }
 
 
-/* =========================================================
-   VERIFICAR PERÍODO
-========================================================= */
-
 function pertenceAoPeriodo(item) {
-
-  if (!item) {
-    return false;
-  }
 
   const mes = obterMesSelecionado();
   const ano = obterAnoSelecionado();
 
-  /*
-    Registros que possuem mes e ano
-  */
-
   if (
+    item &&
     item.mes !== undefined &&
     item.ano !== undefined
   ) {
@@ -121,42 +99,37 @@ function pertenceAoPeriodo(item) {
 
   }
 
-
   /*
     Compatibilidade com registros
-    que possuem apenas uma data
+    que possuem somente uma data.
   */
 
   const dataReferencia =
-    item.dataRecebimento ||
-    item.dataPagamento ||
-    item.vencimento ||
-    item.data;
+    item?.dataRecebimento ||
+    item?.dataPagamento ||
+    item?.data ||
+    item?.vencimento;
 
   if (dataReferencia) {
 
-    const data =
-      new Date(dataReferencia);
-
-    if (
-      Number.isNaN(
-        data.getTime()
+    const data = new Date(
+      dataReferencia + (
+        String(dataReferencia).length === 10
+          ? "T00:00:00"
+          : ""
       )
-    ) {
-      return false;
-    }
-
-    return (
-      data.getMonth() === mes &&
-      data.getFullYear() === ano
     );
 
-  }
+    if (!Number.isNaN(data.getTime())) {
 
-  /*
-    Registros sem período não
-    pertencem ao mês.
-  */
+      return (
+        data.getMonth() === mes &&
+        data.getFullYear() === ano
+      );
+
+    }
+
+  }
 
   return false;
 }
@@ -195,33 +168,23 @@ function despesasDoMes() {
 
 
 /* =========================================================
-   INVESTIMENTOS / APORTES
+   INVESTIMENTOS
 ========================================================= */
 
 function investimentosDoMes() {
 
   /*
-    Consideramos apenas investimentos
-    que possuem período definido.
+    Aqui temos dois conceitos diferentes:
+
+    1. patrimônio total existente
+    2. aportes realizados no mês
+
+    Por enquanto o dashboard mostra
+    os investimentos registrados no período.
   */
 
   return (DB.investimentos || [])
     .filter(pertenceAoPeriodo)
-    .reduce(
-      (total, item) =>
-        total + Number(item.valor || 0),
-      0
-    );
-}
-
-
-/* =========================================================
-   PATRIMÔNIO TOTAL
-========================================================= */
-
-function totalInvestido() {
-
-  return (DB.investimentos || [])
     .reduce(
       (total, item) =>
         total + Number(item.valor || 0),
@@ -240,17 +203,17 @@ function saldoDoMes() {
     receitasDoMes() -
     despesasDoMes()
   );
+
 }
 
 
 /* =========================================================
-   PERCENTUAL ECONOMIZADO
+   ECONOMIA
 ========================================================= */
 
 function percentualEconomizado() {
 
-  const receitas =
-    receitasDoMes();
+  const receitas = receitasDoMes();
 
   if (receitas <= 0) {
     return 0;
@@ -260,34 +223,7 @@ function percentualEconomizado() {
     saldoDoMes() /
     receitas
   ) * 100;
-}
 
-
-/* =========================================================
-   DESEJOS
-========================================================= */
-
-function totalGuardadoDesejos() {
-
-  return (DB.desejos || [])
-    .reduce(
-      (total, item) =>
-        total +
-        Number(item.guardado || 0),
-      0
-    );
-}
-
-
-function totalDesejos() {
-
-  return (DB.desejos || [])
-    .reduce(
-      (total, item) =>
-        total +
-        Number(item.valor || 0),
-      0
-    );
 }
 
 
@@ -304,12 +240,9 @@ function gastosPorCategoria() {
     .forEach(item => {
 
       const categoria =
-        item.categoria ||
-        "Outros";
+        item.categoria || "Outros";
 
-      if (
-        !categorias[categoria]
-      ) {
+      if (!categorias[categoria]) {
         categorias[categoria] = 0;
       }
 
@@ -322,10 +255,6 @@ function gastosPorCategoria() {
 }
 
 
-/* =========================================================
-   GASTO DE UMA CATEGORIA
-========================================================= */
-
 function gastoDaCategoria(categoria) {
 
   return (DB.despesas || [])
@@ -336,15 +265,15 @@ function gastoDaCategoria(categoria) {
     )
     .reduce(
       (total, item) =>
-        total +
-        Number(item.valor || 0),
+        total + Number(item.valor || 0),
       0
     );
+
 }
 
 
 /* =========================================================
-   CARDS PRINCIPAIS
+   CARDS
 ========================================================= */
 
 function renderCards() {
@@ -358,8 +287,11 @@ function renderCards() {
   const saldo =
     saldoDoMes();
 
-  const patrimonio =
-    totalInvestido();
+  const investimentos =
+    investimentosDoMes();
+
+  const economia =
+    percentualEconomizado();
 
   const classeSaldo =
     saldo >= 0
@@ -424,15 +356,32 @@ function renderCards() {
       <div class="card metric">
 
         <small>
-          Total investido
+          Investimentos
         </small>
 
         <strong class="purple">
-          ${moeda(patrimonio)}
+          ${moeda(investimentos)}
         </strong>
 
         <span class="icon">
           📈
+        </span>
+
+      </div>
+
+
+      <div class="card metric">
+
+        <small>
+          Renda economizada
+        </small>
+
+        <strong class="${economia >= 0 ? "green" : "red"}">
+          ${economia.toFixed(1)}%
+        </strong>
+
+        <span class="icon">
+          💎
         </span>
 
       </div>
@@ -461,80 +410,51 @@ function gerarAlertas() {
     saldoDoMes();
 
 
-  /*
-    SALDO NEGATIVO
-  */
+  /* -------------------------------------------------------
+     SALDO NEGATIVO
+  ------------------------------------------------------- */
 
   if (saldo < 0) {
 
     alertas.push(`
-
       <div class="alert danger">
-
-        ⚠️ Seu saldo mensal está negativo.
-
+        ⚠️ Seu saldo mensal está negativo em
+        <strong>${moeda(Math.abs(saldo))}</strong>.
       </div>
-
     `);
 
   }
 
 
-  /*
-    UTILIZAÇÃO DA RENDA
-  */
+  /* -------------------------------------------------------
+     USO DA RENDA
+  ------------------------------------------------------- */
 
   if (receitas > 0) {
 
-    const percentual =
+    const percentualUso =
       despesas /
       receitas *
       100;
 
-
-    if (percentual >= 100) {
+    if (percentualUso >= 100) {
 
       alertas.push(`
-
         <div class="alert danger">
-
-          🚨 Suas despesas já
-          ultrapassaram sua renda.
-
+          🚨 Suas despesas já ultrapassaram sua renda.
         </div>
-
       `);
 
     }
 
-    else if (percentual >= 80) {
+    else if (percentualUso >= 80) {
 
       alertas.push(`
-
         <div class="alert warning">
-
           ⚠️ Você já utilizou
-          ${percentual.toFixed(1)}%
+          <strong>${percentualUso.toFixed(1)}%</strong>
           da sua renda.
-
         </div>
-
-      `);
-
-    }
-
-    else {
-
-      alertas.push(`
-
-        <div class="alert">
-
-          ✅ Você está utilizando
-          ${percentual.toFixed(1)}%
-          da sua renda.
-
-        </div>
-
       `);
 
     }
@@ -542,65 +462,87 @@ function gerarAlertas() {
   }
 
 
-  /*
-    CONTAS PRÓXIMAS DO VENCIMENTO
-  */
+  /* -------------------------------------------------------
+     LIMITES
+  ------------------------------------------------------- */
+
+  (DB.limites || [])
+    .filter(pertenceAoPeriodo)
+    .forEach(item => {
+
+      const limite =
+        Number(item.limite || 0);
+
+      if (limite <= 0) {
+        return;
+      }
+
+      const gasto =
+        gastoDaCategoria(
+          item.categoria
+        );
+
+      const uso =
+        gasto / limite * 100;
+
+
+      if (uso >= 100) {
+
+        alertas.push(`
+          <div class="alert danger">
+            🚨 O limite de
+            <strong>${escapar(item.categoria)}</strong>
+            foi ultrapassado.
+            Gasto: ${moeda(gasto)}
+            / Limite: ${moeda(limite)}
+          </div>
+        `);
+
+      }
+
+      else if (uso >= 80) {
+
+        alertas.push(`
+          <div class="alert warning">
+            ⚠️ Você já utilizou
+            <strong>${uso.toFixed(1)}%</strong>
+            do limite de
+            <strong>${escapar(item.categoria)}</strong>.
+          </div>
+        `);
+
+      }
+
+    });
+
+
+  /* -------------------------------------------------------
+     CONTAS PRÓXIMAS DO VENCIMENTO
+  ------------------------------------------------------- */
 
   const hoje =
     new Date();
 
-  const proximasContas =
-    (DB.despesas || [])
-      .filter(pertenceAoPeriodo)
-      .filter(item => {
+  (DB.despesas || [])
+    .filter(pertenceAoPeriodo)
+    .forEach(despesa => {
 
-        if (
-          item.status === "paga"
-        ) {
-          return false;
-        }
-
-        if (!item.vencimento) {
-          return false;
-        }
-
-        const vencimento =
-          new Date(
-            item.vencimento +
-            "T00:00:00"
-          );
-
-        const diferenca =
-          Math.ceil(
-            (
-              vencimento -
-              hoje
-            ) /
-            (
-              1000 *
-              60 *
-              60 *
-              24
-            )
-          );
-
-        return (
-          diferenca >= 0 &&
-          diferenca <= 3
-        );
-
-      });
-
-
-  proximasContas
-    .slice(0, 3)
-    .forEach(item => {
+      if (
+        despesa.status === "paga" ||
+        !despesa.vencimento
+      ) {
+        return;
+      }
 
       const vencimento =
         new Date(
-          item.vencimento +
+          despesa.vencimento +
           "T00:00:00"
         );
+
+      if (Number.isNaN(vencimento.getTime())) {
+        return;
+      }
 
       const diferenca =
         Math.ceil(
@@ -617,168 +559,91 @@ function gerarAlertas() {
         );
 
 
+      if (
+        diferenca >= 0 &&
+        diferenca <= 3
+      ) {
+
+        alertas.push(`
+          <div class="alert warning">
+            ⚠️ A conta
+            <strong>${escapar(despesa.descricao)}</strong>
+            vence
+            ${
+              diferenca === 0
+                ? "hoje"
+                : `em ${diferenca} dia${diferenca > 1 ? "s" : ""}`
+            }.
+          </div>
+        `);
+
+      }
+
+    });
+
+
+  /* -------------------------------------------------------
+     METAS
+  ------------------------------------------------------- */
+
+  (DB.desejos || [])
+    .filter(
+      item =>
+        Number(item.guardado || 0) <
+        Number(item.valor || 0)
+    )
+    .slice(0, 2)
+    .forEach(meta => {
+
+      const falta =
+        Number(meta.valor || 0) -
+        Number(meta.guardado || 0);
+
       alertas.push(`
-
-        <div class="alert warning">
-
-          ⚠️ A conta
-          <strong>
-            ${escapar(item.descricao)}
-          </strong>
-          vence
-          ${
-            diferenca === 0
-              ? "hoje"
-              : `em ${diferenca} dias`
-          }.
-
+        <div class="alert">
+          🎯 Faltam
+          <strong>${moeda(falta)}</strong>
+          para alcançar
+          <strong>${escapar(meta.nome)}</strong>.
         </div>
-
       `);
 
     });
 
 
-  /*
-    LIMITES
-  */
-
-  const limites =
-    (DB.limites || [])
-      .filter(pertenceAoPeriodo);
-
-
-  limites.forEach(item => {
-
-    const limite =
-      Number(item.limite || 0);
-
-    if (limite <= 0) {
-      return;
-    }
-
-    const gasto =
-      gastoDaCategoria(
-        item.categoria
-      );
-
-    const percentual =
-      gasto /
-      limite *
-      100;
-
-
-    if (
-      percentual >= 100
-    ) {
-
-      alertas.push(`
-
-        <div class="alert danger">
-
-          🚨 O limite de
-          <strong>
-            ${escapar(item.categoria)}
-          </strong>
-          foi ultrapassado.
-
-        </div>
-
-      `);
-
-    }
-
-    else if (
-      percentual >= 80
-    ) {
-
-      alertas.push(`
-
-        <div class="alert warning">
-
-          ⚠️ Você já utilizou
-          ${percentual.toFixed(1)}%
-          do limite de
-          ${escapar(item.categoria)}.
-
-        </div>
-
-      `);
-
-    }
-
-  });
-
-
-  /*
-    METAS
-  */
-
-  const metas =
-    (DB.desejos || [])
-      .filter(item =>
-        Number(item.guardado || 0) <
-        Number(item.valor || 0)
-      );
-
+  /* -------------------------------------------------------
+     ELOGIO
+  ------------------------------------------------------- */
 
   if (
-    metas.length > 0
+    receitas > 0 &&
+    saldo > 0 &&
+    despesas / receitas < 0.5
   ) {
 
-    const primeiraMeta =
-      metas[0];
-
-    const falta =
-      Number(
-        primeiraMeta.valor || 0
-      ) -
-      Number(
-        primeiraMeta.guardado || 0
-      );
-
-
     alertas.push(`
-
-      <div class="alert">
-
-        🎯 Faltam
-        <strong>
-          ${moeda(falta)}
-        </strong>
-        para alcançar
-        ${escapar(
-          primeiraMeta.nome
-        )}.
-
+      <div class="alert success">
+        ✅ Excelente! Você está mantendo suas despesas
+        abaixo de 50% da renda neste mês.
       </div>
-
     `);
 
   }
 
 
-  /*
-    NENHUM ALERTA
-  */
+  /* -------------------------------------------------------
+     SEM ALERTAS
+  ------------------------------------------------------- */
 
-  if (
-    alertas.length === 0
-  ) {
+  if (alertas.length === 0) {
 
     return `
-
-      <div class="alert">
-
-        ✅ Sua organização
-        financeira está em dia.
-
+      <div class="alert success">
+        ✅ Sua organização financeira está em dia.
       </div>
-
     `;
 
   }
-
 
   return alertas.join("");
 
@@ -797,6 +662,10 @@ function renderDashboard() {
   const total =
     despesasDoMes();
 
+  const percentual =
+    percentualEconomizado();
+
+
   const categoriasHTML =
     Object.entries(categorias)
       .sort(
@@ -806,17 +675,21 @@ function renderDashboard() {
       .map(
         ([categoria, valor]) => {
 
-          const percentual =
+          const porcentagem =
             total > 0
-              ? valor /
-                total *
-                100
+              ? (
+                  valor /
+                  total
+                ) * 100
               : 0;
-
 
           return `
 
-            <div class="legend">
+            <div
+              class="legend"
+              data-categoria="${escapar(categoria)}"
+              style="cursor:pointer;"
+            >
 
               <span>
 
@@ -824,18 +697,15 @@ function renderDashboard() {
 
                   <i
                     class="dot"
-                    style="
-                      background:#765ce3
-                    "
                   ></i>
 
-                  ${escapar(
-                    categoria
-                  )}
+                  ${escapar(categoria)}
 
                 </label>
 
-                ${moeda(valor)}
+                <strong>
+                  ${moeda(valor)}
+                </strong>
 
               </span>
 
@@ -845,7 +715,7 @@ function renderDashboard() {
                 <i
                   style="
                     width:${Math.min(
-                      percentual,
+                      porcentagem,
                       100
                     )}%
                   "
@@ -862,43 +732,9 @@ function renderDashboard() {
       .join("");
 
 
-  const percentual =
-    percentualEconomizado();
-
-
-  const receitas =
-    receitasDoMes();
-
-  const despesas =
-    despesasDoMes();
-
-  const saldo =
-    saldoDoMes();
-
-
-  const alturaDespesas =
-    receitas > 0
-      ? despesas /
-        receitas *
-        90
-      : 6;
-
-
-  const alturaSaldo =
-    receitas > 0
-      ? Math.max(
-          0,
-          saldo
-        ) /
-        receitas *
-        90
-      : 6;
-
-
   return `
 
     <div class="page">
-
 
       ${renderCards()}
 
@@ -914,7 +750,11 @@ function renderDashboard() {
             🔔 Alertas inteligentes
           </h3>
 
-          ${gerarAlertas()}
+          <div class="alerts-list">
+
+            ${gerarAlertas()}
+
+          </div>
 
         </div>
 
@@ -931,19 +771,16 @@ function renderDashboard() {
             categoriasHTML ||
 
             `
-
               <div class="empty">
 
-                Nenhuma despesa
-                cadastrada neste período.
+                Nenhuma despesa cadastrada
+                neste período.
 
               </div>
-
             `
           }
 
         </div>
-
 
       </div>
 
@@ -975,9 +812,7 @@ function renderDashboard() {
 
             <div
               class="bar"
-              style="
-                height:90%
-              "
+              style="height:90%"
             ></div>
 
             <small>
@@ -996,7 +831,11 @@ function renderDashboard() {
                   6,
                   Math.min(
                     90,
-                    alturaDespesas
+                    receitasDoMes() > 0
+                      ? despesasDoMes() /
+                        receitasDoMes() *
+                        90
+                      : 6
                   )
                 )}%
               "
@@ -1018,7 +857,14 @@ function renderDashboard() {
                   6,
                   Math.min(
                     90,
-                    alturaSaldo
+                    receitasDoMes() > 0
+                      ? Math.max(
+                          0,
+                          saldoDoMes()
+                        ) /
+                        receitasDoMes() *
+                        90
+                      : 6
                   )
                 )}%
               "
@@ -1044,7 +890,7 @@ function renderDashboard() {
 
 
 /* =========================================================
-   PÁGINA TEMPORÁRIA
+   PÁGINA EM CONSTRUÇÃO
 ========================================================= */
 
 function renderPaginaEmConstrucao(
@@ -1057,9 +903,7 @@ function renderPaginaEmConstrucao(
 
     <div class="page">
 
-
       ${renderCards()}
-
 
       <div class="panel">
 
@@ -1092,21 +936,15 @@ function renderPaginaEmConstrucao(
 
           <div
             class="alert"
-            style="
-              margin-top:25px;
-            "
+            style="margin-top:25px;"
           >
-
             🚧 Esta área será construída
             nos próximos módulos do AUREA.
-
           </div>
-
 
         </div>
 
       </div>
-
 
     </div>
 
@@ -1121,11 +959,9 @@ function renderPaginaEmConstrucao(
 
 const paginas = {
 
-
   dashboard: {
 
-    titulo:
-      "Dashboard",
+    titulo: "Dashboard",
 
     subtitulo:
       "Acompanhe sua evolução financeira",
@@ -1165,7 +1001,7 @@ const paginas = {
     render: () =>
       renderPaginaEmConstrucao(
         "Planejamento",
-        "Planeje receitas, despesas, limites, investimentos e metas.",
+        "Aqui você poderá planejar receitas, despesas, investimentos e metas.",
         "📋"
       )
 
@@ -1183,7 +1019,7 @@ const paginas = {
     render: () =>
       renderPaginaEmConstrucao(
         "Tarefas",
-        "Organize tarefas diárias, recorrentes e pendências.",
+        "Aqui ficará seu checklist diário e recorrente.",
         "✓"
       )
 
@@ -1201,18 +1037,12 @@ const paginas = {
     render: () =>
       renderPaginaEmConstrucao(
         "Relatórios",
-        "Compare seus meses e acompanhe sua evolução.",
+        "Aqui ficarão os comparativos mensais e indicadores históricos.",
         "📊"
       )
 
   },
 
-
-  /*
-    Mantemos estas páginas temporariamente
-    para compatibilidade com versões anteriores
-    do index.html.
-  */
 
   investimentos: {
 
@@ -1284,21 +1114,13 @@ function carregarPagina(nome) {
 
 
   const conteudo =
-    document.getElementById(
-      "content"
-    );
-
+    document.getElementById("content");
 
   const titulo =
-    document.getElementById(
-      "pageTitle"
-    );
-
+    document.getElementById("pageTitle");
 
   const subtitulo =
-    document.getElementById(
-      "pageSubtitle"
-    );
+    document.getElementById("pageSubtitle");
 
 
   if (!conteudo) {
@@ -1312,52 +1134,9 @@ function carregarPagina(nome) {
   }
 
 
-  /*
-    Renderização
-  */
+  conteudo.innerHTML =
+    paginas[nome].render();
 
-  try {
-
-    conteudo.innerHTML =
-      paginas[nome].render();
-
-  }
-
-  catch (erro) {
-
-    console.error(
-      "Erro ao renderizar página:",
-      erro
-    );
-
-
-    conteudo.innerHTML = `
-
-      <div class="panel">
-
-        <h3>
-          Erro ao carregar a página
-        </h3>
-
-        <p class="muted">
-
-          Ocorreu um erro ao
-          renderizar esta área.
-
-        </p>
-
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  /*
-    Título
-  */
 
   if (titulo) {
 
@@ -1367,10 +1146,6 @@ function carregarPagina(nome) {
   }
 
 
-  /*
-    Subtítulo
-  */
-
   if (subtitulo) {
 
     subtitulo.textContent =
@@ -1379,10 +1154,6 @@ function carregarPagina(nome) {
   }
 
 
-  /*
-    Menu ativo
-  */
-
   document
     .querySelectorAll(".menu")
     .forEach(botao => {
@@ -1390,6 +1161,42 @@ function carregarPagina(nome) {
       botao.classList.toggle(
         "active",
         botao.dataset.page === nome
+      );
+
+    });
+
+
+  configurarCategoriasDashboard();
+
+}
+
+
+/* =========================================================
+   CATEGORIAS CLICÁVEIS
+========================================================= */
+
+function configurarCategoriasDashboard() {
+
+  document
+    .querySelectorAll(
+      ".legend[data-categoria]"
+    )
+    .forEach(elemento => {
+
+      elemento.addEventListener(
+        "click",
+        () => {
+
+          const categoria =
+            elemento.dataset.categoria;
+
+          mostrarToast(
+            `Categoria: ${categoria} — ${moeda(
+              gastoDaCategoria(categoria)
+            )}`
+          );
+
+        }
       );
 
     });
@@ -1414,9 +1221,7 @@ function configurarNavegacao() {
           const pagina =
             botao.dataset.page;
 
-          carregarPagina(
-            pagina
-          );
+          carregarPagina(pagina);
 
         }
       );
@@ -1437,24 +1242,22 @@ function configurarMes() {
       "monthSelect"
     );
 
-
   if (!seletor) {
     return;
   }
 
 
-  const mesAtual =
+  const mes =
     obterMesSelecionado();
 
 
   if (
-    mesAtual >= 0 &&
-    mesAtual <
-      seletor.options.length
+    mes >= 0 &&
+    mes < seletor.options.length
   ) {
 
     seletor.value =
-      String(mesAtual);
+      String(mes);
 
   }
 
@@ -1463,7 +1266,7 @@ function configurarMes() {
     "change",
     () => {
 
-      const mes =
+      const novoMes =
         Number(
           seletor.value
         );
@@ -1474,17 +1277,11 @@ function configurarMes() {
       }
 
 
-      /*
-        Um único padrão:
-        mes + ano
-      */
-
       DB.config.mes =
-        mes;
+        novoMes;
 
-
-      DB.config.ano =
-        obterAnoSelecionado();
+      DB.config.mesAtual =
+        novoMes;
 
 
       salvarBanco();
@@ -1519,7 +1316,6 @@ function configurarNotificacoes() {
       "notificationButton"
     );
 
-
   if (!botao) {
     return;
   }
@@ -1533,9 +1329,7 @@ function configurarNotificacoes() {
         gerarQuantidadeAlertas();
 
 
-      if (
-        quantidade === 0
-      ) {
+      if (quantidade === 0) {
 
         mostrarToast(
           "Nenhum alerta no momento."
@@ -1547,13 +1341,9 @@ function configurarNotificacoes() {
 
 
       mostrarToast(
-
         quantidade === 1
-
           ? "Você possui 1 alerta."
-
           : `Você possui ${quantidade} alertas.`
-
       );
 
     }
@@ -1563,7 +1353,7 @@ function configurarNotificacoes() {
 
 
 /* =========================================================
-   CONTADOR DE ALERTAS
+   QUANTIDADE DE ALERTAS
 ========================================================= */
 
 function gerarQuantidadeAlertas() {
@@ -1571,22 +1361,10 @@ function gerarQuantidadeAlertas() {
   let quantidade = 0;
 
 
-  /*
-    Saldo negativo
-  */
-
-  if (
-    saldoDoMes() < 0
-  ) {
-
+  if (saldoDoMes() < 0) {
     quantidade++;
-
   }
 
-
-  /*
-    Renda comprometida
-  */
 
   const receitas =
     receitasDoMes();
@@ -1597,9 +1375,7 @@ function gerarQuantidadeAlertas() {
 
   if (
     receitas > 0 &&
-    despesas /
-      receitas >=
-      0.8
+    despesas / receitas >= 0.8
   ) {
 
     quantidade++;
@@ -1607,19 +1383,12 @@ function gerarQuantidadeAlertas() {
   }
 
 
-  /*
-    Limites
-  */
-
   (DB.limites || [])
     .filter(pertenceAoPeriodo)
     .forEach(item => {
 
       const limite =
-        Number(
-          item.limite || 0
-        );
-
+        Number(item.limite || 0);
 
       const gasto =
         gastoDaCategoria(
@@ -1629,62 +1398,7 @@ function gerarQuantidadeAlertas() {
 
       if (
         limite > 0 &&
-        gasto >=
-          limite * 0.8
-      ) {
-
-        quantidade++;
-
-      }
-
-    });
-
-
-  /*
-    Contas próximas
-  */
-
-  const hoje =
-    new Date();
-
-
-  (DB.despesas || [])
-    .filter(pertenceAoPeriodo)
-    .forEach(item => {
-
-      if (
-        item.status === "paga" ||
-        !item.vencimento
-      ) {
-        return;
-      }
-
-
-      const vencimento =
-        new Date(
-          item.vencimento +
-          "T00:00:00"
-        );
-
-
-      const diferenca =
-        Math.ceil(
-          (
-            vencimento -
-            hoje
-          ) /
-          (
-            1000 *
-            60 *
-            60 *
-            24
-          )
-        );
-
-
-      if (
-        diferenca >= 0 &&
-        diferenca <= 3
+        gasto >= limite * 0.8
       ) {
 
         quantidade++;
@@ -1709,6 +1423,11 @@ function iniciarApp() {
     "AUREA iniciado."
   );
 
+  console.log(
+    "Banco AUREA:",
+    DB
+  );
+
 
   configurarNavegacao();
 
@@ -1728,8 +1447,7 @@ function iniciarApp() {
 ========================================================= */
 
 if (
-  document.readyState ===
-  "loading"
+  document.readyState === "loading"
 ) {
 
   document.addEventListener(
@@ -1737,9 +1455,7 @@ if (
     iniciarApp
   );
 
-}
-
-else {
+} else {
 
   iniciarApp();
 
@@ -1754,8 +1470,6 @@ export {
 
   carregarPagina,
 
-  moeda,
-
   mostrarToast,
 
   receitasDoMes,
@@ -1766,8 +1480,6 @@ export {
 
   investimentosDoMes,
 
-  totalInvestido,
-
   gastosPorCategoria
 
-};
+};V
