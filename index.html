@@ -2,283 +2,210 @@
 <html lang="pt-BR">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta charset="UTF-8">
+  <title>AUREA | Planejamento Financeiro</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+  <!-- Fonte -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <title>AUREA | Planejamento Financeiro</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
-    <!-- CSS principal -->
-    <link
-        rel="stylesheet"
-        href="styles/global.css"
-    >
-
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles/global.css">
 </head>
-
 
 <body>
 
-    <div class="app">
+  <div class="app">
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
 
-        <!-- =================================================
-             SIDEBAR
-        ================================================== -->
+      <div>
+
+        <!-- Marca -->
+        <div class="brand">
+          <h1>AUREA</h1>
+          <p>Planejamento para uma vida organizada</p>
+        </div>
+
+        <!-- Navegação -->
+        <nav class="menu-list">
+
+          <button
+            class="menu active"
+            data-page="dashboard"
+            type="button"
+          >
+            <span>⌂</span>
+            Dashboard
+          </button>
+
+          <button
+            class="menu"
+            data-page="financeiro"
+            type="button"
+          >
+            <span>💳</span>
+            Meu Financeiro
+          </button>
+
+          <button
+            class="menu"
+            data-page="planejamento"
+            type="button"
+          >
+            <span>📋</span>
+            Planejamento
+          </button>
+
+          <button
+            class="menu"
+            data-page="tarefas"
+            type="button"
+          >
+            <span>✓</span>
+            Tarefas
+          </button>
+
+          <button
+            class="menu"
+            data-page="relatorios"
+            type="button"
+          >
+            <span>📊</span>
+            Relatórios
+          </button>
 
-        <aside class="sidebar">
+        </nav>
+
+      </div>
 
-            <div>
+      <!-- Perfil / Plano -->
+      <div class="profile">
+        <p>Plano atual</p>
+        <strong>AUREA Premium</strong>
+      </div>
+
+    </aside>
 
-                <!-- Marca -->
-                <div class="brand">
 
-                    <h1>AUREA</h1>
+    <!-- =====================================================
+         CONTEÚDO PRINCIPAL
+    ====================================================== -->
+
+    <main class="content">
+
+      <!-- ===================================================
+           TOPBAR
+      ==================================================== -->
+
+      <header class="topbar">
+
+        <div>
+
+          <h2 id="pageTitle">
+            Dashboard
+          </h2>
+
+          <p id="pageSubtitle">
+            Acompanhe sua evolução financeira
+          </p>
+
+        </div>
+
 
-                    <p>
-                        Planejamento para uma vida organizada
-                    </p>
+        <div class="actions">
 
-                </div>
+          <!-- Seleção de período -->
 
+          <select
+            class="select"
+            id="monthSelect"
+            aria-label="Selecionar mês"
+          >
 
-                <!-- Navegação -->
-                <nav
-                    class="menu-list"
-                    aria-label="Navegação principal"
-                >
+            <option value="0">Janeiro 2026</option>
+            <option value="1">Fevereiro 2026</option>
+            <option value="2">Março 2026</option>
+            <option value="3">Abril 2026</option>
+            <option value="4">Maio 2026</option>
+            <option value="5">Junho 2026</option>
+            <option value="6">Julho 2026</option>
+            <option value="7">Agosto 2026</option>
+            <option value="8">Setembro 2026</option>
+            <option value="9">Outubro 2026</option>
+            <option value="10">Novembro 2026</option>
+            <option value="11">Dezembro 2026</option>
 
-                    <button
-                        class="menu active"
-                        data-page="dashboard"
-                        type="button"
-                    >
-                        <span>⌂</span>
-                        Dashboard
-                    </button>
+          </select>
 
 
-                    <button
-                        class="menu"
-                        data-page="financeiro"
-                        type="button"
-                    >
-                        <span>💳</span>
-                        Meu Financeiro
-                    </button>
+          <!-- Notificações -->
 
+          <button
+            class="bell"
+            id="notificationButton"
+            type="button"
+            aria-label="Notificações"
+          >
+            🔔
+          </button>
 
-                    <button
-                        class="menu"
-                        data-page="planejamento"
-                        type="button"
-                    >
-                        <span>📋</span>
-                        Planejamento
-                    </button>
+        </div>
 
+      </header>
 
-                    <button
-                        class="menu"
-                        data-page="tarefas"
-                        type="button"
-                    >
-                        <span>✓</span>
-                        Tarefas
-                    </button>
 
+      <!-- ===================================================
+           ÁREA DINÂMICA
+           
+           O JavaScript irá inserir aqui:
+           
+           Dashboard
+           Meu Financeiro
+           Planejamento
+           Tarefas
+           Relatórios
+      ==================================================== -->
 
-                    <button
-                        class="menu"
-                        data-page="relatorios"
-                        type="button"
-                    >
-                        <span>📊</span>
-                        Relatórios
-                    </button>
+      <section id="content"></section>
 
-                </nav>
+    </main>
 
-            </div>
+  </div>
 
 
-            <!-- Perfil / Plano -->
-            <div class="profile">
+  <!-- =====================================================
+       TOAST / NOTIFICAÇÕES
+  ====================================================== -->
 
-                <p>
-                    Plano atual
-                </p>
+  <div
+    class="toast"
+    id="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
 
-                <strong>
-                    AUREA Premium
-                </strong>
 
-            </div>
+  <!-- =====================================================
+       JAVASCRIPT
+       
+       IMPORTANTE:
+       O main.js agora será o ponto de entrada da aplicação.
+       Os demais módulos serão carregados por ele.
+  ====================================================== -->
 
-        </aside>
-
-
-        <!-- =================================================
-             CONTEÚDO PRINCIPAL
-        ================================================== -->
-
-        <main class="content">
-
-            <!-- Topbar -->
-            <header class="topbar">
-
-                <div>
-
-                    <h2 id="pageTitle">
-                        Dashboard
-                    </h2>
-
-                    <p id="pageSubtitle">
-                        Acompanhe sua evolução financeira
-                    </p>
-
-                </div>
-
-
-                <div class="actions">
-
-                    <!-- Seletor de mês -->
-                    <select
-                        class="select"
-                        id="monthSelect"
-                        aria-label="Selecionar mês"
-                    >
-
-                        <option value="0">
-                            Janeiro 2026
-                        </option>
-
-                        <option value="1">
-                            Fevereiro 2026
-                        </option>
-
-                        <option value="2">
-                            Março 2026
-                        </option>
-
-                        <option value="3">
-                            Abril 2026
-                        </option>
-
-                        <option value="4">
-                            Maio 2026
-                        </option>
-
-                        <option value="5">
-                            Junho 2026
-                        </option>
-
-                        <option value="6">
-                            Julho 2026
-                        </option>
-
-                        <option value="7">
-                            Agosto 2026
-                        </option>
-
-                        <option value="8">
-                            Setembro 2026
-                        </option>
-
-                        <option value="9">
-                            Outubro 2026
-                        </option>
-
-                        <option value="10">
-                            Novembro 2026
-                        </option>
-
-                        <option value="11">
-                            Dezembro 2026
-                        </option>
-
-                    </select>
-
-
-                    <!-- Notificações -->
-                    <button
-                        class="bell"
-                        id="notificationButton"
-                        type="button"
-                        aria-label="Notificações"
-                    >
-                        🔔
-                    </button>
-
-                </div>
-
-            </header>
-
-
-            <!-- =================================================
-                 ÁREA DINÂMICA
-                 
-                 As páginas serão inseridas pelo JavaScript:
-                 Dashboard
-                 Meu Financeiro
-                 Planejamento
-                 Tarefas
-                 Relatórios
-            ================================================== -->
-
-            <section
-                id="content"
-                aria-live="polite"
-            ></section>
-
-        </main>
-
-    </div>
-
-
-    <!-- =================================================
-         TOAST / NOTIFICAÇÕES
-    ================================================== -->
-
-    <div
-        class="toast"
-        id="toast"
-        role="status"
-        aria-live="polite"
-    ></div>
-
-
-    <!-- =================================================
-         JAVASCRIPT
-         
-         A ordem é IMPORTANTE.
-    ================================================== -->
-
-    <!-- Banco de dados -->
-    <script src="js/database.js"></script>
-
-    <!-- Funções auxiliares -->
-    <script src="js/utils.js"></script>
-
-    <!-- Inicialização -->
-    <script src="js/main.js"></script>
+  <script type="module" src="js/main.js"></script>
 
 </body>
 
