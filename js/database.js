@@ -1,464 +1,1036 @@
 "use strict";
 
-/* =========================================================
+/* ============================================================
    AUREA — DATABASE.JS
-   Banco de dados e persistência da aplicação
-========================================================= */
+   Banco de dados + LocalStorage
+   ============================================================ */
 
 const STORAGE_KEY = "AUREA_DB";
 
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
 
-/* =========================================================
-   BANCO INICIAL
-========================================================= */
-
-const bancoInicial = {
-
-  receitas: [],
-
-  despesas: [],
-
-  custosFixos: [],
-
-  investimentos: [],
-
-  limites: [],
-
-  desejos: [],
-
-  tarefas: [],
-
-  planejamentos: [],
-
-  relatorios: [],
-
-  config: {
-
-    mesAtual: new Date().getMonth(),
-
-    anoAtual: new Date().getFullYear()
-
-  }
-
-};
-
-
-/* =========================================================
-   GERADOR DE ID
-========================================================= */
-
-function gerarId(prefixo = "id") {
-
-  if (
-    window.crypto &&
-    typeof window.crypto.randomUUID === "function"
-  ) {
-
-    return `${prefixo}-${window.crypto.randomUUID()}`;
-
+function gerarId(prefixo = "item") {
+  if (window.crypto && crypto.randomUUID) {
+    return `${prefixo}-${crypto.randomUUID()}`;
   }
 
   return `${prefixo}-${Date.now()}-${Math.random()
     .toString(16)
     .slice(2)}`;
-
 }
 
 
-/* =========================================================
-   CLONAR BANCO INICIAL
-========================================================= */
+/* ============================================================
+   ESTRUTURA DO BANCO
+   ============================================================ */
 
-function clonarBancoInicial() {
+function criarBancoInicial() {
 
-  return JSON.parse(
-    JSON.stringify(bancoInicial)
-  );
+  const agora = new Date();
 
+  return {
+
+    /* --------------------------------------------------------
+       RECEITAS
+    -------------------------------------------------------- */
+
+    receitas: [
+      {
+        id: gerarId("receita"),
+        descricao: "Salário principal",
+        valor: 6600,
+        categoria: "Salário",
+
+        dataRecebimento: agora.toISOString().slice(0, 10),
+
+        recorrencia: "Mensal",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      }
+    ],
+
+
+    /* --------------------------------------------------------
+       DESPESAS
+    -------------------------------------------------------- */
+
+    despesas: [
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Aluguel",
+
+        valor: 1300,
+
+        categoria: "Moradia",
+
+        tipo: "Fixa",
+
+        vencimento: `${agora.getFullYear()}-${String(
+          agora.getMonth() + 1
+        ).padStart(2, "0")}-05`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Cartão de débito",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Net Claro",
+
+        valor: 70,
+
+        categoria: "Internet/Telefone",
+
+        tipo: "Fixa",
+
+        vencimento: `${agora.getFullYear()}-${String(
+          agora.getMonth() + 1
+        ).padStart(2, "0")}-10`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Academia",
+
+        valor: 150,
+
+        categoria: "Academia",
+
+        tipo: "Fixa",
+
+        vencimento: `${agora.getFullYear()}-${String(
+          agora.getMonth() + 1
+        ).padStart(2, "0")}-10`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Curso de inglês",
+
+        valor: 70,
+
+        categoria: "Educação",
+
+        tipo: "Fixa",
+
+        vencimento: `${agora.getFullYear()}-${String(
+          agora.getMonth() + 1
+        ).padStart(2, "0")}-15`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Água",
+
+        valor: 45,
+
+        categoria: "Contas da Casa",
+
+        tipo: "Fixa",
+
+        vencimento: `${agora.getFullYear()}-${String(
+          agora.getMonth() + 1
+        ).padStart(2, "0")}-12`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "pendente",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "Transporte",
+
+        valor: 50,
+
+        categoria: "Transporte",
+
+        tipo: "Variável",
+
+        vencimento: `${agora.getFullYear()}-${String(
+          agora.getMonth() + 1
+        ).padStart(2, "0")}-20`,
+
+        dataPagamento: null,
+
+        formaPagamento: "Pix",
+
+        status: "paga",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("despesa"),
+
+        descricao: "iFood",
+
+        valor: 65,
+
+        categoria: "Delivery",
+
+        tipo: "Variável",
+
+        vencimento: `${agora.getFullYear()}-${String(
+          agora.getMonth() + 1
+        ).padStart(2, "0")}-20`,
+
+        dataPagamento: agora.toISOString().slice(0, 10),
+
+        formaPagamento: "Cartão",
+
+        status: "paga",
+
+        observacao: "",
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      }
+    ],
+
+
+    /* --------------------------------------------------------
+       CUSTOS FIXOS
+    -------------------------------------------------------- */
+
+    custosFixos: [
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Aluguel",
+
+        valor: 1300,
+
+        categoria: "Moradia",
+
+        diaVencimento: 5,
+
+        formaPagamento: "Cartão de débito",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Net Claro",
+
+        valor: 70,
+
+        categoria: "Internet/Telefone",
+
+        diaVencimento: 10,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Academia",
+
+        valor: 150,
+
+        categoria: "Academia",
+
+        diaVencimento: 10,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Curso de inglês",
+
+        valor: 70,
+
+        categoria: "Educação",
+
+        diaVencimento: 15,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("fixo"),
+
+        nome: "Água",
+
+        valor: 45,
+
+        categoria: "Contas da Casa",
+
+        diaVencimento: 12,
+
+        formaPagamento: "Pix",
+
+        recorrencia: "Mensal",
+
+        ativo: true,
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* --------------------------------------------------------
+       INVESTIMENTOS
+    -------------------------------------------------------- */
+
+    investimentos: [
+
+      {
+        id: gerarId("investimento"),
+
+        nome: "Investimentos existentes",
+
+        valor: 31500,
+
+        tipo: "Patrimônio",
+
+        instituicao: "",
+
+        data: agora.toISOString().slice(0, 10),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* --------------------------------------------------------
+       LIMITES
+    -------------------------------------------------------- */
+
+    limites: [
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Alimentação",
+
+        limite: 800,
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Transporte",
+
+        limite: 250,
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Delivery",
+
+        limite: 180,
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Lazer",
+
+        limite: 300,
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Vestuário",
+
+        limite: 300,
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Beleza",
+
+        limite: 250,
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("limite"),
+
+        categoria: "Pets",
+
+        limite: 200,
+
+        mes: agora.getMonth(),
+        ano: agora.getFullYear(),
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* --------------------------------------------------------
+       DESEJOS / METAS
+    -------------------------------------------------------- */
+
+    desejos: [
+
+      {
+        id: gerarId("desejo"),
+
+        nome: "Apple iPad Wi-Fi 128 GB",
+
+        valor: 3399,
+
+        guardado: 1200,
+
+        dataDesejada: null,
+
+        prazoMeses: 5,
+
+        prioridade: "Alta",
+
+        categoria: "Tecnologia",
+
+        imagem: "",
+
+        icone: "📱",
+
+        observacao: "",
+
+        status: "Em andamento",
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* --------------------------------------------------------
+       TAREFAS
+    -------------------------------------------------------- */
+
+    tarefas: [
+
+      {
+        id: gerarId("tarefa"),
+
+        titulo: "Conferir saldo bancário",
+
+        categoria: "Financeiro",
+
+        prioridade: "Alta",
+
+        status: "pendente",
+
+        recorrente: true,
+
+        data: agora.toISOString().slice(0, 10),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("tarefa"),
+
+        titulo: "Registrar despesas do dia",
+
+        categoria: "Financeiro",
+
+        prioridade: "Média",
+
+        status: "pendente",
+
+        recorrente: true,
+
+        data: agora.toISOString().slice(0, 10),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      },
+
+      {
+        id: gerarId("tarefa"),
+
+        titulo: "Conferir contas próximas do vencimento",
+
+        categoria: "Financeiro",
+
+        prioridade: "Alta",
+
+        status: "pendente",
+
+        recorrente: true,
+
+        data: agora.toISOString().slice(0, 10),
+
+        observacao: "",
+
+        criadoEm: agora.toISOString(),
+        atualizadoEm: agora.toISOString()
+      }
+
+    ],
+
+
+    /* --------------------------------------------------------
+       PLANEJAMENTOS
+    -------------------------------------------------------- */
+
+    planejamentos: [],
+
+
+    /* --------------------------------------------------------
+       RELATÓRIOS
+       
+       Não vamos armazenar relatórios manualmente agora.
+       Eles serão calculados posteriormente a partir dos
+       demais dados.
+    -------------------------------------------------------- */
+
+    relatorios: [],
+
+
+    /* --------------------------------------------------------
+       DÍVIDAS
+    -------------------------------------------------------- */
+
+    dividas: [],
+
+
+    /* --------------------------------------------------------
+       CONFIGURAÇÕES
+    -------------------------------------------------------- */
+
+    config: {
+
+      mes: agora.getMonth(),
+
+      ano: agora.getFullYear(),
+
+      moeda: "BRL",
+
+      primeiroDiaSemana: 1
+
+    }
+
+  };
 }
 
 
-/* =========================================================
-   NORMALIZAR BANCO
-========================================================= */
-
-/*
- * Garante que um banco antigo não quebre
- * quando adicionarmos novas estruturas.
- */
+/* ============================================================
+   GARANTIR ESTRUTURA
+   ============================================================ */
 
 function normalizarBanco(banco) {
+
+  const inicial = criarBancoInicial();
 
   return {
 
     receitas: Array.isArray(banco?.receitas)
       ? banco.receitas
-      : [],
+      : inicial.receitas,
 
     despesas: Array.isArray(banco?.despesas)
       ? banco.despesas
-      : [],
+      : inicial.despesas,
 
-    custosFixos: Array.isArray(
-      banco?.custosFixos
-    )
+    custosFixos: Array.isArray(banco?.custosFixos)
       ? banco.custosFixos
-      : [],
+      : inicial.custosFixos,
 
-    investimentos: Array.isArray(
-      banco?.investimentos
-    )
+    investimentos: Array.isArray(banco?.investimentos)
       ? banco.investimentos
-      : [],
+      : inicial.investimentos,
 
-    limites: Array.isArray(
-      banco?.limites
-    )
+    limites: Array.isArray(banco?.limites)
       ? banco.limites
-      : [],
+      : inicial.limites,
 
-    desejos: Array.isArray(
-      banco?.desejos
-    )
+    desejos: Array.isArray(banco?.desejos)
       ? banco.desejos
-      : [],
+      : inicial.desejos,
 
-    tarefas: Array.isArray(
-      banco?.tarefas
-    )
+    tarefas: Array.isArray(banco?.tarefas)
       ? banco.tarefas
-      : [],
+      : inicial.tarefas,
 
-    planejamentos: Array.isArray(
-      banco?.planejamentos
-    )
+    planejamentos: Array.isArray(banco?.planejamentos)
       ? banco.planejamentos
-      : [],
+      : inicial.planejamentos,
 
-    relatorios: Array.isArray(
-      banco?.relatorios
-    )
+    relatorios: Array.isArray(banco?.relatorios)
       ? banco.relatorios
+      : inicial.relatorios,
+
+    dividas: Array.isArray(banco?.dividas)
+      ? banco.dividas
       : [],
 
     config: {
 
-      ...bancoInicial.config,
+      ...inicial.config,
 
       ...(banco?.config || {})
 
     }
 
   };
-
 }
 
 
-/* =========================================================
+/* ============================================================
    CARREGAR BANCO
-========================================================= */
+   ============================================================ */
 
 function carregarBanco() {
 
-  const bancoSalvo =
+  const dadosSalvos =
     localStorage.getItem(STORAGE_KEY);
 
 
-  /*
-   * Primeiro acesso.
-   */
+  /* Primeiro acesso */
 
-  if (!bancoSalvo) {
+  if (!dadosSalvos) {
 
-    const bancoNovo =
-      clonarBancoInicial();
+    const bancoInicial =
+      criarBancoInicial();
 
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify(bancoNovo)
+      JSON.stringify(bancoInicial)
     );
 
-    return bancoNovo;
-
+    return bancoInicial;
   }
 
 
-  /*
-   * Banco já existente.
-   */
+  /* Banco existente */
 
   try {
 
     const banco =
-      JSON.parse(bancoSalvo);
+      JSON.parse(dadosSalvos);
 
     const bancoNormalizado =
       normalizarBanco(banco);
-
-
-    /*
-     * Salva novamente já normalizado.
-     * Isso garante que novas estruturas
-     * sejam adicionadas ao banco antigo.
-     */
 
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify(bancoNormalizado)
     );
 
-
     return bancoNormalizado;
 
   } catch (erro) {
 
     console.error(
-      "AUREA: erro ao carregar banco.",
+      "Erro ao carregar banco AUREA:",
       erro
     );
 
 
-    const bancoNovo =
-      clonarBancoInicial();
+    const bancoInicial =
+      criarBancoInicial();
 
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify(bancoNovo)
+      JSON.stringify(bancoInicial)
     );
 
-
-    return bancoNovo;
-
+    return bancoInicial;
   }
-
 }
 
 
-/* =========================================================
+/* ============================================================
+   BANCO GLOBAL
+   ============================================================ */
+
+let DB = carregarBanco();
+
+
+/* ============================================================
    SALVAR BANCO
-========================================================= */
+   ============================================================ */
 
-function salvarBanco(DB) {
+function salvarBanco() {
 
-  try {
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(DB)
-    );
-
-    return true;
-
-  } catch (erro) {
-
-    console.error(
-      "AUREA: erro ao salvar banco.",
-      erro
-    );
-
-    return false;
-
-  }
-
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(DB)
+  );
 }
 
 
-/* =========================================================
+/* ============================================================
    RESETAR BANCO
-========================================================= */
+   ============================================================ */
 
 function resetarBanco() {
 
-  const bancoNovo =
-    clonarBancoInicial();
-
-
-  salvarBanco(bancoNovo);
-
-
-  return bancoNovo;
-
-}
-
-
-/* =========================================================
-   LIMPAR BANCO
-========================================================= */
-
-function limparBanco() {
-
-  localStorage.removeItem(
-    STORAGE_KEY
+  const confirmacao = confirm(
+    "Isso apagará todos os dados do AUREA. Deseja continuar?"
   );
 
-}
-
-
-/* =========================================================
-   CONTEXTO DO PERÍODO
-========================================================= */
-
-function obterMesAtual(DB) {
-
-  return Number(
-    DB?.config?.mesAtual ??
-    new Date().getMonth()
-  );
-
-}
-
-
-function obterAnoAtual(DB) {
-
-  return Number(
-    DB?.config?.anoAtual ??
-    new Date().getFullYear()
-  );
-
-}
-
-
-/* =========================================================
-   ALTERAR PERÍODO
-========================================================= */
-
-function definirPeriodo(
-  DB,
-  mes,
-  ano
-) {
-
-  DB.config.mesAtual =
-    Number(mes);
-
-  DB.config.anoAtual =
-    Number(ano);
-
-
-  salvarBanco(DB);
-
-}
-
-
-/* =========================================================
-   VERIFICAR SE REGISTRO PERTENCE AO MÊS
-========================================================= */
-
-function pertenceAoMes(
-  item,
-  mes,
-  ano
-) {
-
-  if (!item) {
+  if (!confirmacao) {
     return false;
   }
 
+  DB = criarBancoInicial();
 
-  /*
-   * Registros novos terão
-   * mes e ano próprios.
-   */
+  salvarBanco();
 
-  if (
-    item.mes !== undefined &&
-    item.ano !== undefined
-  ) {
-
-    return (
-      Number(item.mes) === Number(mes) &&
-      Number(item.ano) === Number(ano)
-    );
-
-  }
+  return true;
+}
 
 
-  /*
-   * Compatibilidade com registros
-   * que possuem apenas uma data.
-   */
+/* ============================================================
+   CONSULTAS POR PERÍODO
+   ============================================================ */
 
-  if (item.data) {
+function pertenceAoMes(item, mes, ano) {
 
-    const data =
-      new Date(item.data);
-
-
-    if (
-      Number.isNaN(
-        data.getTime()
-      )
-    ) {
-
-      return false;
-
-    }
+  return (
+    Number(item.mes) === Number(mes) &&
+    Number(item.ano) === Number(ano)
+  );
+}
 
 
-    return (
-      data.getMonth() === Number(mes) &&
-      data.getFullYear() === Number(ano)
-    );
+function obterMesAtual() {
 
-  }
+  return Number(DB.config.mes);
+}
 
 
-  return false;
+function obterAnoAtual() {
+
+  return Number(DB.config.ano);
+}
+
+
+function obterPeriodoAtual() {
+
+  return {
+
+    mes: obterMesAtual(),
+
+    ano: obterAnoAtual()
+
+  };
+}
+
+
+function definirPeriodo(mes, ano) {
+
+  DB.config.mes = Number(mes);
+
+  DB.config.ano = Number(ano);
+
+  salvarBanco();
 
 }
 
 
-/* =========================================================
-   FILTRAR REGISTROS POR PERÍODO
-========================================================= */
+/* ============================================================
+   GERENCIAMENTO GENÉRICO
+   ============================================================ */
 
-function filtrarPorPeriodo(
-  registros,
-  mes,
-  ano
+function adicionarRegistro(
+  colecao,
+  registro
 ) {
 
-  if (!Array.isArray(registros)) {
+  if (!Array.isArray(DB[colecao])) {
 
-    return [];
+    console.error(
+      `Coleção "${colecao}" não existe no banco.`
+    );
 
+    return null;
   }
 
+  const agora =
+    new Date().toISOString();
 
-  return registros.filter(
-    item =>
-      pertenceAoMes(
-        item,
-        mes,
-        ano
-      )
-  );
+  const novoRegistro = {
 
+    id: registro.id || gerarId(colecao),
+
+    ...registro,
+
+    criadoEm:
+      registro.criadoEm || agora,
+
+    atualizadoEm:
+      agora
+
+  };
+
+  DB[colecao].push(novoRegistro);
+
+  salvarBanco();
+
+  return novoRegistro;
 }
 
 
-/* =========================================================
-   GERAR DATA DO REGISTRO
-========================================================= */
+function atualizarRegistro(
+  colecao,
+  id,
+  alteracoes
+) {
 
-function criarDataAtual() {
+  if (!Array.isArray(DB[colecao])) {
+    return null;
+  }
 
-  return new Date().toISOString();
+  const indice =
+    DB[colecao].findIndex(
+      item => item.id === id
+    );
 
+  if (indice === -1) {
+    return null;
+  }
+
+  DB[colecao][indice] = {
+
+    ...DB[colecao][indice],
+
+    ...alteracoes,
+
+    atualizadoEm:
+      new Date().toISOString()
+
+  };
+
+  salvarBanco();
+
+  return DB[colecao][indice];
 }
 
 
-/* =========================================================
-   EXPOSIÇÃO GLOBAL
-========================================================= */
+function excluirRegistro(
+  colecao,
+  id
+) {
 
-window.AUREA_DB = {
+  if (!Array.isArray(DB[colecao])) {
+    return false;
+  }
+
+  const tamanhoAntes =
+    DB[colecao].length;
+
+  DB[colecao] =
+    DB[colecao].filter(
+      item => item.id !== id
+    );
+
+  const removido =
+    DB[colecao].length <
+    tamanhoAntes;
+
+  if (removido) {
+    salvarBanco();
+  }
+
+  return removido;
+}
+
+
+function buscarRegistro(
+  colecao,
+  id
+) {
+
+  if (!Array.isArray(DB[colecao])) {
+    return null;
+  }
+
+  return DB[colecao].find(
+    item => item.id === id
+  ) || null;
+}
+
+
+/* ============================================================
+   EXPORTAÇÃO PARA OS OUTROS MÓDULOS
+   ============================================================ */
+
+export {
 
   STORAGE_KEY,
 
-  bancoInicial,
+  DB,
 
   gerarId,
+
+  criarBancoInicial,
 
   carregarBanco,
 
@@ -466,20 +1038,22 @@ window.AUREA_DB = {
 
   resetarBanco,
 
-  limparBanco,
-
-  normalizarBanco,
+  pertenceAoMes,
 
   obterMesAtual,
 
   obterAnoAtual,
 
+  obterPeriodoAtual,
+
   definirPeriodo,
 
-  pertenceAoMes,
+  adicionarRegistro,
 
-  filtrarPorPeriodo,
+  atualizarRegistro,
 
-  criarDataAtual
+  excluirRegistro,
+
+  buscarRegistro
 
 };
