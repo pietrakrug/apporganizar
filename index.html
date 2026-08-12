@@ -7,6 +7,7 @@
 
   <title>AUREA | Planejamento Financeiro</title>
 
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -15,6 +16,7 @@
     rel="stylesheet"
   >
 
+  <!-- CSS principal -->
   <link rel="stylesheet" href="styles/global.css">
 </head>
 
@@ -30,12 +32,15 @@
 
       <div>
 
+        <!-- Marca -->
         <div class="brand">
           <h1>AUREA</h1>
           <p>Planejamento para uma vida organizada</p>
         </div>
 
-        <nav class="menu-list">
+
+        <!-- Navegação -->
+        <nav class="menu-list" aria-label="Navegação principal">
 
           <button
             class="menu active"
@@ -46,6 +51,7 @@
             Dashboard
           </button>
 
+
           <button
             class="menu"
             data-page="financeiro"
@@ -54,6 +60,7 @@
             <span>💳</span>
             Meu Financeiro
           </button>
+
 
           <button
             class="menu"
@@ -64,6 +71,7 @@
             Planejamento
           </button>
 
+
           <button
             class="menu"
             data-page="tarefas"
@@ -72,6 +80,7 @@
             <span>✓</span>
             Tarefas
           </button>
+
 
           <button
             class="menu"
@@ -82,6 +91,7 @@
             Relatórios
           </button>
 
+
           <button
             class="menu"
             data-page="investimentos"
@@ -91,6 +101,7 @@
             Investimentos
           </button>
 
+
           <button
             class="menu"
             data-page="limites"
@@ -99,6 +110,7 @@
             <span>🎯</span>
             Limites
           </button>
+
 
           <button
             class="menu"
@@ -113,9 +125,8 @@
 
       </div>
 
-      <!-- =====================================================
-           PERFIL
-      ====================================================== -->
+
+      <!-- Perfil / plano -->
 
       <div class="profile">
 
@@ -133,6 +144,7 @@
     ====================================================== -->
 
     <main class="content">
+
 
       <!-- ===================================================
            TOPBAR
@@ -155,7 +167,7 @@
 
         <div class="actions">
 
-          <!-- SELETOR DE MÊS -->
+          <!-- Seletor de mês -->
 
           <select
             class="select"
@@ -163,23 +175,58 @@
             aria-label="Selecionar mês"
           >
 
-            <option value="0">Janeiro 2026</option>
-            <option value="1">Fevereiro 2026</option>
-            <option value="2">Março 2026</option>
-            <option value="3">Abril 2026</option>
-            <option value="4">Maio 2026</option>
-            <option value="5">Junho 2026</option>
-            <option value="6">Julho 2026</option>
-            <option value="7">Agosto 2026</option>
-            <option value="8">Setembro 2026</option>
-            <option value="9">Outubro 2026</option>
-            <option value="10">Novembro 2026</option>
-            <option value="11">Dezembro 2026</option>
+            <option value="0">
+              Janeiro 2026
+            </option>
+
+            <option value="1">
+              Fevereiro 2026
+            </option>
+
+            <option value="2">
+              Março 2026
+            </option>
+
+            <option value="3">
+              Abril 2026
+            </option>
+
+            <option value="4">
+              Maio 2026
+            </option>
+
+            <option value="5">
+              Junho 2026
+            </option>
+
+            <option value="6">
+              Julho 2026
+            </option>
+
+            <option value="7">
+              Agosto 2026
+            </option>
+
+            <option value="8">
+              Setembro 2026
+            </option>
+
+            <option value="9">
+              Outubro 2026
+            </option>
+
+            <option value="10">
+              Novembro 2026
+            </option>
+
+            <option value="11">
+              Dezembro 2026
+            </option>
 
           </select>
 
 
-          <!-- NOTIFICAÇÕES -->
+          <!-- Notificações -->
 
           <button
             class="bell"
@@ -196,9 +243,9 @@
 
 
       <!-- ===================================================
-           ÁREA DINÂMICA
+           ÁREA DINÂMICA DO APP
            
-           O JavaScript irá inserir aqui:
+           Os módulos JavaScript irão inserir aqui:
            
            Dashboard
            Meu Financeiro
@@ -210,7 +257,11 @@
            Desejos
       ==================================================== -->
 
-      <section id="content"></section>
+      <section
+        id="content"
+        aria-live="polite"
+      ></section>
+
 
     </main>
 
@@ -232,21 +283,19 @@
   <!-- =====================================================
        JAVASCRIPT
        
-       A ordem importa.
+       IMPORTANTE:
+       type="module" permite trabalhar com:
        
-       1. database.js
-          → cria/carrega o banco DB
-
-       2. utils.js
-          → funções auxiliares
-
-       3. main.js
-          → controla a aplicação
+       import ...
+       export ...
+       
+       entre os arquivos da pasta /js.
   ====================================================== -->
 
-  <script src="js/database.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/main.js"></script>
+  <script
+    type="module"
+    src="js/main.js"
+  ></script>
 
 </body>
 
